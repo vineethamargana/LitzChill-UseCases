@@ -7,6 +7,7 @@ import Logger from "@shared/Logger/logger.ts";
 import { HTTP_STATUS_CODE } from "@shared/_constants/HttpStatusCodes.ts";
 import { LIKE_ERROR } from "@shared/_messages/LikeMessage.ts";
 import { CustomException } from "@shared/ExceptionHandling/CustomException.ts";
+import { throwException } from "@shared/ExceptionHandling/ThrowException.ts";
 
  const logger = Logger.getInstance();
 
@@ -59,20 +60,47 @@ import { CustomException } from "@shared/ExceptionHandling/CustomException.ts";
 //   }
 
 
-export async function insertLikeQuery(
-    meme_id: string, 
-    user_id: string, 
-    likeable_type: string, supabaseClient = supabase
-  ): Promise<object | null> {
-    const { data, error } = await supabaseClient
-      .from('likes')
-      .upsert(
-        [{ meme_id, user_id, likeable_type, created_at: new Date().toISOString() }],
-        { onConflict: 'meme_id, user_id' } // Conflict resolution based on meme_id and user_id
-      );
-    return error ? (() => { throw new CustomException(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR, error.message || LIKE_ERROR.INSERTION_FAILED); })(): data;
-}
+// export async function insertLikeQuery(
+//     meme_id: string, 
+//     user_id: string, 
+//     likeable_type: string, supabaseClient = supabase
+//   ): Promise<object | null> {
+//     const { data, error } = await supabaseClient
+//       .from('likes')
+//       .upsert(
+//         [{ meme_id, user_id, likeable_type, created_at: new Date().toISOString() }],
+//         { onConflict: 'meme_id, user_id' } // Conflict resolution based on meme_id and user_id
+//       );
+//     return error ? (() => { throw new CustomException(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR, error.message || LIKE_ERROR.INSERTION_FAILED); })(): data;
+// }
 
+/**
+ * Function to insert a like for a meme.
+ * 
+ * @param meme_id - The unique identifier of the meme.
+ * @param user_id - The unique identifier of the user.
+ * @param likeable_type - The type of likeable entity (e.g., meme).
+ * @returns {Promise<object | null>} - The inserted like data if successful, or null if not inserted or an error occurs.
+ */
+
+export async function insertLikeQuery(
+  meme_id: string, 
+  user_id: string, 
+  likeable_type: string, 
+  supabaseClient = supabase
+): Promise<object | null> {
+  const { data, error } = await supabaseClient
+      .from("likes")
+      .upsert(
+          [{ meme_id, user_id, likeable_type, created_at: new Date().toISOString() }],
+          { onConflict: "meme_id, user_id" } // Conflict resolution based on meme_id and user_id
+      );
+
+  // Throw an exception if there is an error
+  error && throwException(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR, error.message || LIKE_ERROR.INSERTION_FAILED);
+
+  return data;
+}
 
   
 /**
