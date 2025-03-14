@@ -4,6 +4,9 @@ import { LIKE_TABLE_FIELDS } from "@shared/_db_table_details/LikeTableFields.ts"
 import { MEMEFIELDS } from "@shared/_db_table_details/MemeTableFields.ts";
 import { TABLE_NAMES } from "@shared/_db_table_details/TableNames.ts";
 import Logger from "@shared/Logger/logger.ts";
+import { HTTP_STATUS_CODE } from "@shared/_constants/HttpStatusCodes.ts";
+import { LIKE_ERROR } from "@shared/_messages/LikeMessage.ts";
+import { CustomException } from "@shared/ExceptionHandling/CustomException.ts";
 
  const logger = Logger.getInstance();
 
@@ -38,23 +41,39 @@ import Logger from "@shared/Logger/logger.ts";
  * @returns {Promise<{ data: object | null, error: object | null }>} - The inserted like data if successful, or null if not inserted or an error occurs.
  */
 
+// export async function insertLikeQuery(
+//     meme_id: string, 
+//     user_id: string, 
+//     likeable_type: string, supabaseClient = supabase
+//   ): Promise<{ data: object | null, error: object | null }> {
+//     const { data, error } = await supabaseClient
+//       .from('likes')
+//       .upsert(
+//         [{ meme_id, user_id, likeable_type, created_at: new Date().toISOString() }],
+//         { onConflict: 'meme_id, user_id' } // Conflict resolution based on meme_id and user_id
+//       );
+//     if (error) {
+//       return { data: null, error };
+//     }
+//     return { data, error: null };
+//   }
+
+
 export async function insertLikeQuery(
     meme_id: string, 
     user_id: string, 
     likeable_type: string, supabaseClient = supabase
-  ): Promise<{ data: object | null, error: object | null }> {
+  ): Promise<object | null> {
     const { data, error } = await supabaseClient
       .from('likes')
       .upsert(
         [{ meme_id, user_id, likeable_type, created_at: new Date().toISOString() }],
         { onConflict: 'meme_id, user_id' } // Conflict resolution based on meme_id and user_id
       );
-    if (error) {
-      return { data: null, error };
-    }
-    return { data, error: null };
-  }
-  
+    return error ? (() => { throw new CustomException(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR, error.message || LIKE_ERROR.INSERTION_FAILED); })(): data;
+}
+
+
   
 /**
  * Function to unlike a meme.
@@ -82,6 +101,8 @@ export async function unlikememe(meme_id: string, user_id: string, supabaseClien
   logger.info(`Meme with ID ${meme_id} successfully unliked by user ${user_id}`);
   return true;
 }
+
+
 
 
 // /**

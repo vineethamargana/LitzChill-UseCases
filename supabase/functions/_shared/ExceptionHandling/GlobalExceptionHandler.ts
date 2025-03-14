@@ -16,6 +16,7 @@ export default class GlobalExceptionHandler {
                 return await handler(...args);
             } catch (error) {
                 if (error instanceof CustomException) {
+                    logger.error(error.message);
                     return ErrorResponse(error.statusCode, error.message);
                 } else {
                     logger.error(`Unhandled error: ${error}`);

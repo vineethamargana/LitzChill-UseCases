@@ -7,20 +7,22 @@ import { COMMON_ERROR_MESSAGES } from "@shared/_messages/ErrorMessages.ts";
 import { MEMEFIELDS } from "@shared/_db_table_details/MemeTableFields.ts";
 import { MEME_STATUS } from "@shared/_constants/Types.ts";
 import Logger from "@shared/Logger/logger.ts";
+import { CustomException } from "@shared/ExceptionHandling/CustomException.ts";
 
 export default async function updateMemeStatus(req: Request, params: Record<string, string>, updateMemeStatusQueryFn = updateMemeStatusQuery) {
     const logger = Logger.getInstance();
   try {
-      const meme_id = params.id;
-      const user_id = params.user_id;
+      const meme_id = params.id ?? (() => { throw new CustomException(400,"Missing student ID"); })();
+      const user_id = params.user_id ;
+      
 
       logger.info(`Received parameters: meme_id=${meme_id}, user_id=${user_id}`);
 
-      // Validate `meme_id`
-      if (!meme_id || !V4.isValid(meme_id)) {
-          logger.error("Validation failed: Invalid or missing meme_id.");
-          return ErrorResponse(HTTP_STATUS_CODE.BAD_REQUEST, MEME_ERROR_MESSAGES.MISSING_MEMEID);
-      }
+    //   // Validate `meme_id`
+    //   if (!meme_id || !V4.isValid(meme_id)) {
+    //       logger.error("Validation failed: Invalid or missing meme_id.");
+    //       return ErrorResponse(HTTP_STATUS_CODE.BAD_REQUEST, MEME_ERROR_MESSAGES.MISSING_MEMEID);
+    //   }
 
       // Parse request body
       const body = await req.json();
