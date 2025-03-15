@@ -5,48 +5,33 @@ import { LIKE_SUCCESS } from '@shared/_messages/LikeMessage.ts';
 import { meme_exists } from "@repository/_meme_repo/MemeRepository.ts";
 import { MEME_ERROR_MESSAGES } from "@shared/_messages/Meme_Module_Messages.ts";
 import { V4 } from "@V4";
-import Logger from "@shared/Logger/logger.ts";
-import { CustomException } from "@shared/ExceptionHandling/CustomException.ts";
 import GlobalExceptionHandler from "@shared/ExceptionHandling/GlobalExceptionHandler.ts";
+import { throwException } from "@shared/ExceptionHandling/ThrowException.ts";
+
 
 /**
- * Handles the process of liking a meme by a user, including validation, insertion, and updating the like count.
+ * Handler to like a meme. This handler first checks if the meme exists, if yes, then it inserts a new like record.
  * 
- * @param {Request} req - The HTTP request object, which contains the user ID and meme ID in the parameters.
- * @param {Record<string, string>} params - The URL parameters containing the user ID and meme ID.
- * @returns {Promise<Response>} - The response object, indicating success or failure of the like operation.
+ * @param _req - The HTTP request object.
+ * @param params - The URL parameters, including the user ID and meme ID.
+ * @param CheckMemeExists - Optional parameter to override the default check meme exists function.
+ * @param likememeQuery - Optional parameter to override the default like meme query function.
+ * @returns {Promise<Response>} - The response indicating the success or failure of the operation.
  * 
- * @throws {Error} - If an error occurs during any of the following:
- *   - Invalid or missing meme ID.
- *   - Meme not found.
- *   - User has already liked the meme.
- *   - Failure to insert like or update like count.
- *   - Failure to notify the meme owner.
+ * @throws {Error} - If the meme is not found, or there is an issue inserting the like or updating the like count.
  */
 
-const logger = Logger.getInstance();
-
 async function likememe(_req: Request, params: Record<string, string>,CheckMemeExists = meme_exists, likememeQuery = insertLikeQuery) {
-    const user_id = params.user_id;
-    
-    const meme_id = V4.isValid(params.id) && params.id || (() => { 
-        throw new CustomException(HTTP_STATUS_CODE.BAD_REQUEST, MEME_ERROR_MESSAGES.MISSING_MEMEID);
-    })();
-    
 
+    const meme_id = V4.isValid(params.id) ? params.id : throwException(HTTP_STATUS_CODE.BAD_REQUEST, MEME_ERROR_MESSAGES.MISSING_MEMEID);
+    
     //Step 1: Check if meme exists
-    const existingMeme = await CheckMemeExists(meme_id);
-    if (!existingMeme) {
-        logger.error(`Meme with ID ${meme_id} not found.`);
-        throw new CustomException(HTTP_STATUS_CODE.NOT_FOUND, MEME_ERROR_MESSAGES.MEME_NOT_FOUND);
-    }
-    logger.info(`Meme with ID ${meme_id} exists.`);
-
+    await CheckMemeExists(meme_id);
+    
     // Step 2: Insert a new like record
     const likeable_type = "meme";
-    await likememeQuery(meme_id, user_id, likeable_type);
+    await likememeQuery(meme_id, params.user_id, likeable_type);
     return SuccessResponse(HTTP_STATUS_CODE.OK, LIKE_SUCCESS.LIKED_SUCCESSFULLY);
 }
-
 export default GlobalExceptionHandler.handle(likememe);
 

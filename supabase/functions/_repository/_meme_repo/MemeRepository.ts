@@ -6,6 +6,10 @@ import { Meme } from '@model/MemeModel.ts';
 import { USER_ROLES } from "@shared/_constants/UserRoles.ts";
 import { MEME_STATUS } from '@shared/_constants/Types.ts';
 import Logger from "@shared/Logger/logger.ts";
+import { HTTP_STATUS_CODE } from "@shared/_constants/HttpStatusCodes.ts";
+import { LIKE_ERROR } from "@shared/_messages/LikeMessage.ts";
+import { throwException } from "@shared/ExceptionHandling/ThrowException.ts";
+import { MEME_ERROR_MESSAGES } from "@shared/_messages/Meme_Module_Messages.ts";
 
 const logger = Logger.getInstance();
 
@@ -17,13 +21,11 @@ export async function meme_exists(meme_id: string, supabaseClient = supabase) {
         .eq(MEMEFIELDS.MEME_ID, meme_id)
         .neq(MEMEFIELDS.MEME_STATUS,MEME_STATUS.DELETED)
         .maybeSingle();  // Ensure only one row is returned 
-
-
         logger.info(existingMeme+" "+fetchError);
+        
+        fetchError||!existingMeme && throwException(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR, fetchError || MEME_ERROR_MESSAGES.MEME_NOT_FOUND);
 
-
-    if (fetchError || !existingMeme)  return null;
-    return existingMeme;
+  return existingMeme; 
 }
 
 /**
@@ -88,7 +90,7 @@ export async function uploadFileToBucket(mediaFile: File, memeTitle: string,supa
     } catch (error) {
         logger.error(`Error in uploadFileToBucket: ${error}`);
         return null;
-    }
+    } 
 }
 
 // Helper function to generate SHA-256 hash of a file
