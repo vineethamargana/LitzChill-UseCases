@@ -8,18 +8,21 @@ import { LIKE_SUCCESS } from '@shared/_messages/LikeMessage.ts';
 import { throwException } from "@shared/ExceptionHandling/ThrowException.ts";
 import GlobalExceptionHandler from "@shared/ExceptionHandling/GlobalExceptionHandler.ts";
 
+
 /**
- * Handler to unlike a meme.
+ * Unlike a meme by a user.
  * 
  * @param _req - The HTTP request object.
- * @param params - The URL parameters containing:
- *   - `id`: The unique ID of the meme to unlike.
- *   - `user_id`: The unique ID of the user who is unliking the meme.
- * @param CheckMemeExists - Optional parameter to override the default check meme exists function.
- * @param unlikememeQuery - Optional parameter to override the default unlike meme query function.
- * @returns {Promise<Response>} - The response indicating the success or failure of the operation.
+ * @param params - The URL parameters containing the user ID and meme ID.
+ * @param [CheckMemeExists=meme_exists] - The function to call to check if a meme exists.
+ * @param [unlikememeQuery=unlikememe] - The function to call to unlike a meme.
  * 
- * @throws {Error} - If the meme is not found, or there is an issue unliking the meme.
+ * @returns {Promise<Response>} - The response object indicating success or failure of the unlike operation.
+ * 
+ * @throws {Error} - If an error occurs during any of the following:
+ *   - Invalid or missing meme ID.
+ *   - Meme not found.
+ *   - Failure to unlike the meme.
  */
 async function unlikememes(_req: Request, params: Record<string, string>,CheckMemeExists=meme_exists, unlikememeQuery = unlikememe ):Promise<Response> {
     
