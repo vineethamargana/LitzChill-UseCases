@@ -71,7 +71,7 @@ export function validateMemeFields(meme_title: string | undefined, tags: string[
     if (tags && tags.length > 0) {
         console.log("Validation tags: " + tags)
         for (const tag of tags) {
-            if (tag.length < 1 || tag.length > 20) {
+            if (tag.length < 2 || tag.length > 20) {
                 validationErrors.push(MEME_ERROR_MESSAGES.INVALID_TAG_LENGTH);
             }
             if (!/^[A-Za-z0-9\s-]+$/.test(tag)) {
