@@ -41,7 +41,7 @@ async function createMeme(req: Request, params: Record<string, string>, uploadFi
 
     // Insert the meme into the database
     const insertmeme = await CreateMemeQueryFn(meme);
-    return await SuccessResponse(HTTP_STATUS_CODE.CREATED, MEME_SUCCESS_MESSAGES.MEME_CREATED_SUCCESSFULLY, insertmeme);
+    return SuccessResponse(HTTP_STATUS_CODE.CREATED, MEME_SUCCESS_MESSAGES.MEME_CREATED_SUCCESSFULLY, insertmeme);
 
 }
 

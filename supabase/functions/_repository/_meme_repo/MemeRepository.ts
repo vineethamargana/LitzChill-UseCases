@@ -133,21 +133,22 @@ export async function updatememeQuery(
 }
 
 
+
 /**
- * Soft delete a meme by updating its status to "deleted".
- * Ensures that the user_id matches if the role is not admin.
+ * Deletes a meme by updating its status to 'DELETED' in the database.
  * 
- * @param {string} meme_id - The ID of the meme to delete.
- * @param {string} user_id - The ID of the user attempting to delete.
- * @param {string} role - The role of the user (e.g., admin, memer).
+ * @param {string} meme_id - The unique identifier of the meme to be deleted.
+ * @param {string} user_id - The unique identifier of the user attempting to delete the meme.
+ * @param {string} user_type - The role of the user (e.g., admin, user) performing the deletion.
+ * @param {object} supabaseClient - The Supabase client instance for database operations.
+ * @returns {Promise<object | null>} - The deleted meme data if successful; otherwise, throws an error.
  * 
- * @returns {Promise<{ data: object | null, error: object | null }>} - The result of the query.
+ * @throws {Error} - If an error occurs during the deletion process, such as forbidden access, 
+ *                   not found, conflict, or internal server error.
  */
 export async function deleteMemeQuery(meme_id: string, user_id: string, user_type: string, supabaseClient = supabase) {
     const isAdmin = user_type === USER_ROLES.ADMIN_ROLE;
-    const conditions = isAdmin
-        ? { [MEMEFIELDS.MEME_ID]: meme_id }
-        : { [MEMEFIELDS.MEME_ID]: meme_id, [MEMEFIELDS.USER_ID]: user_id };
+    const conditions = isAdmin ? { [MEMEFIELDS.MEME_ID]: meme_id }: { [MEMEFIELDS.MEME_ID]: meme_id, [MEMEFIELDS.USER_ID]: user_id };
 
     const { data, error } = await supabaseClient
         .from(TABLE_NAMES.MEME_TABLE)
@@ -157,9 +158,10 @@ export async function deleteMemeQuery(meme_id: string, user_id: string, user_typ
         .select("meme_id, meme_status")
         .single();
 
-    if (error) logger.error(`Failed to delete meme: ${error.message}`);
-    return { data, error };
+    error && throwException(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR, MEME_ERROR_MESSAGES.FAILED_TO_DELETE);
+    return data;
 }
+
 
 /**
   * Fetches memes that are not deleted and optionally filters them by tags.
