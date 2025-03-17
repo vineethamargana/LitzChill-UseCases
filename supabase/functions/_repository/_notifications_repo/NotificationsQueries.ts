@@ -85,22 +85,15 @@ export async function markNotificationsAsReadQuery(notification_id: string, user
         .update({ read_status: true })
         .eq(NOTIFICATIONS_TABLE_FEILDS.NOTIFICATION_ID, notification_id)
         .eq(NOTIFICATIONS_TABLE_FEILDS.USER_ID, user_id)
-        .select("notification_id"); // Select only required fields
+        .select("notification_id"); 
 
     logger.log(`Mark Notification - Data: ${JSON.stringify(data)}, Error: ${JSON.stringify(error)}`);
 
-    if (error) {
-        logger.error(`Error marking notification as read: ${error.message}`);
-        return false;
-    }
-
-    // Ensure data is not empty
-    if (!data || data.length === 0) {
-        logger.error("No rows updated. Notification not found or mismatch in user_id.");
-        return false;
-    }
-
+    data?.length === 0 && throwException(HTTP_STATUS_CODE.NOT_FOUND, NOTIFICATION_ERRORS.NOTIFICATION_NOT_FOUND);
+    error && throwException(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR, NOTIFICATION_ERRORS.FAILED_TO_UPDATE);
+  
     return true;
 }
+
 
 
