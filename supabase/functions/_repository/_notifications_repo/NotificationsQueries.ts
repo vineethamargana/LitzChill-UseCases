@@ -4,6 +4,10 @@ import { MEME_STATUS } from "@shared/_constants/Types.ts";
 import { NOTIFICATIONS_TABLE_FEILDS } from "@shared/_db_table_details/NotificationTableConstants.ts";
 import { TABLE_NAMES } from "@shared/_db_table_details/TableNames.ts";
 import Logger from "@shared/Logger/logger.ts";
+import { HTTP_STATUS_CODE } from "@shared/_constants/HttpStatusCodes.ts";
+import { LIKE_ERROR } from "@shared/_messages/LikeMessage.ts";
+import { throwException } from "@shared/ExceptionHandling/ThrowException.ts";
+import { NOTIFICATION_ERRORS, NOTIFICATION_SUCCESS } from "@shared/_messages/NotificationMessages.ts";
 
 const logger = Logger.getInstance();
  
@@ -60,8 +64,12 @@ export async function getNotificationsQuery(user_id: string, SupabaseClient=supa
         .order(NOTIFICATIONS_TABLE_FEILDS.CREATED_AT, { ascending: false })
         .limit(5);
 
-    logger.log(data+" "+error);
-    return { data, error };
+        logger.info("Get Notification - Data: " + JSON.stringify(data) + ", Error: " + JSON.stringify(error));
+
+        data?.length === 0 && throwException(HTTP_STATUS_CODE.NOT_FOUND, NOTIFICATION_SUCCESS.NO_NOTIFICATIONS);
+        error && throwException(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR, NOTIFICATION_ERRORS.FAILED_TO_FETCH);
+
+    return data;
 }
 
 

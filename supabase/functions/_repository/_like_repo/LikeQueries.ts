@@ -20,12 +20,7 @@ import { throwException } from "@shared/ExceptionHandling/ThrowException.ts";
  * @returns {Promise<object | null>} - The inserted like data if successful, or null if not inserted or an error occurs.
  */
 
-export async function insertLikeQuery(
-  meme_id: string, 
-  user_id: string, 
-  likeable_type: string, 
-  supabaseClient = supabase
-): Promise<object | null> {
+export async function insertLikeQuery( meme_id: string, user_id: string, likeable_type: string, supabaseClient = supabase): Promise<object | null> {
   const { data, error } = await supabaseClient
       .from("likes")
       .upsert(
@@ -46,11 +41,7 @@ export async function insertLikeQuery(
  * @param user_id - The unique identifier of the user.
  * @returns {Promise<boolean>} - Returns true if successful, or false if there’s an error.
  */
-export async function unlikememe(
-  meme_id: string, 
-  user_id: string, 
-  supabaseClient = supabase
-): Promise<boolean> {
+export async function unlikememe(meme_id: string, user_id: string, supabaseClient = supabase): Promise<boolean> {
   
   const { data, error } = await supabaseClient
     .from(TABLE_NAMES.LIKES_TABLE)

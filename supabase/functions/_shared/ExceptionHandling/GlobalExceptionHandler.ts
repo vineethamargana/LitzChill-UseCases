@@ -6,10 +6,7 @@ import { CustomException } from "./CustomException.ts";
 import { COMMON_ERROR_MESSAGES } from "@shared/_messages/ErrorMessages.ts";
 
 const logger = Logger.getInstance();
-
-
 export default class GlobalExceptionHandler {
-   
     static handle<T extends (...args: any[]) => Promise<Response>>(handler: T): T {
         return (async (...args: Parameters<T>): Promise<Response> => {
             try {
