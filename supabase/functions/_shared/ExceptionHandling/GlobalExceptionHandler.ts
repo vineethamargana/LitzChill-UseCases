@@ -15,12 +15,10 @@ export default class GlobalExceptionHandler {
                 if (error instanceof CustomException) {
                     logger.error(error.message);
                     return ErrorResponse(error.statusCode, error.message);
-                } else {
+                } 
+                else {
                     logger.error(`Unhandled error: ${error}`);
-                    return ErrorResponse(
-                        HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR,
-                        COMMON_ERROR_MESSAGES.INTERNAL_SERVER_ERROR
-                    );
+                    return ErrorResponse(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR,COMMON_ERROR_MESSAGES.INTERNAL_SERVER_ERROR);
                 }
             }
         }) as T;

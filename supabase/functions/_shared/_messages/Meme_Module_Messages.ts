@@ -28,6 +28,8 @@ export const MEME_ERROR_MESSAGES = {
 
     //failed errors
     MEDIA_UPLOAD_FAILED: "Failed to upload the file. Please try again.",
+    UNSUPPORTED_FILE_TYPE: "Unsupported file type in the meme_id field.",
+    PUBLIC_URL_FAILED: "Failed to generate a public URL for the file. Please try again later.",
     FAILED_TO_CREATE: "An error occurred while creating the meme. Please try again later.",
     FAILED_TO_UPDATE: "Unable to update the meme.Either Meme not found or you are not authorized to update it",
     FAILED_TO_FETCH: "Unable to fetch the meme. Please ensure the meme exists and has not been deleted",
