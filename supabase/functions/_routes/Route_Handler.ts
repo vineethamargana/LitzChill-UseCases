@@ -1,7 +1,6 @@
 // deno-lint-ignore-file
 import { HTTP_STATUS_CODE } from "@shared/_constants/HttpStatusCodes.ts";
 import { COMMON_ERROR_MESSAGES } from "@shared/_messages/ErrorMessages.ts";
-import { ErrorResponse } from "@response/Response.ts";
 import { throwException } from "@shared/ExceptionHandling/ThrowException.ts";
 
  
