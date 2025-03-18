@@ -7,11 +7,8 @@ import { USER_ROLES } from "@shared/_constants/UserRoles.ts";
 import { MEME_STATUS } from '@shared/_constants/Types.ts';
 import Logger from "@shared/Logger/logger.ts";
 import { HTTP_STATUS_CODE } from "@shared/_constants/HttpStatusCodes.ts";
-import { LIKE_ERROR } from "@shared/_messages/LikeMessage.ts";
 import { throwException } from "@shared/ExceptionHandling/ThrowException.ts";
 import { MEME_ERROR_MESSAGES } from "@shared/_messages/Meme_Module_Messages.ts";
-import { COMMENT_ROUTES } from "@routes/RoutesPaths.ts";
-import { COMMON_ERROR_MESSAGES } from "@shared/_messages/ErrorMessages.ts";
 
 const logger = Logger.getInstance();
 
@@ -25,9 +22,7 @@ export async function meme_exists(meme_id: string, supabaseClient = supabase) {
         .single();
     logger.info(existingMeme + " " + fetchError);
 
-    fetchError && throwException(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR, MEME_ERROR_MESSAGES.MEME_NOT_FOUND);
-
-    return existingMeme;
+    return existingMeme ? existingMeme: throwException(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR, MEME_ERROR_MESSAGES.MEME_NOT_FOUND);
 }
 
 
@@ -92,8 +87,7 @@ export async function createMemeQuery(meme: Partial<Meme>, supabaseClient = supa
         .select("*")
         .single();
 
-        error && throwException(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR,MEME_ERROR_MESSAGES.FAILED_TO_CREATE);
-        return data;
+        return data?data:throwException(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR,MEME_ERROR_MESSAGES.FAILED_TO_CREATE);
 }
 
 
@@ -158,8 +152,7 @@ export async function deleteMemeQuery(meme_id: string, user_id: string, user_typ
         .select("meme_id, meme_status")
         .single();
 
-    error && throwException(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR, MEME_ERROR_MESSAGES.FAILED_TO_DELETE);
-    return data;
+    return data ? data: throwException(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR, MEME_ERROR_MESSAGES.FAILED_TO_DELETE);
 }
 
 
@@ -173,24 +166,22 @@ export async function deleteMemeQuery(meme_id: string, user_id: string, user_typ
   * @param {string | null} tags - A comma-separated string of tags to filter memes by, or null for no tag filter.
   * @returns {Promise<{ data: object[] | null, error: object | null }>} - A promise that resolves with an array of memes or an error.
   */
-export async function fetchMemes(page: number, limit: number, sort: string, tags: string | null, supabaseClient = supabase):
-    Promise<{ data: object[] | null, error: object | null }> {
+export async function fetchMemes(page: number, limit: number, sort: string, tags: string | null, supabaseClient = supabase):Promise< object[] > {
     // Subquery to fetch public users
-    console.log("Subquery to fetch public users")
     const { data: publicUsers, error: publicUsersError } = await supabaseClient
         .from("users")
         .select("user_id,preferences")
         .eq("preferences", "Public");
 
-    if (publicUsersError || !publicUsers) {
-        logger.error("Error fetching public users: " + publicUsersError?.message);
-        return { data: null, error: publicUsersError };
-    }
+
+    if (publicUsersError || !publicUsers) throwException(HTTP_STATUS_CODE.NOT_FOUND,MEME_ERROR_MESSAGES.NO_MEMES);
+    
 
     // Use map() to create an array of public user IDs
     const publicUserIds = publicUsers.map(function (user: { user_id: any; }) {
-        return user.user_id; // For each user, return their user_id
+        return user.user_id; 
     });
+
     // Base query to fetch memes
     console.log("Query to fetch memes ")
     let query = supabaseClient
@@ -211,14 +202,9 @@ export async function fetchMemes(page: number, limit: number, sort: string, tags
     query = query.range((page - 1) * limit, page * limit - 1);
 
 
-    const { data, error } = await query;
+    const { data } = await query;
 
-    if (error) {
-        logger.error("Error fetching memes: " + error.message);
-        return { data: null, error };
-    }
-    console.log("Memes fetched successfully" + data);
-    return { data, error: null };
+    return data ? data :throwException(HTTP_STATUS_CODE.NOT_FOUND,MEME_ERROR_MESSAGES.NO_MEMES);
 }
 
 /**
@@ -237,7 +223,7 @@ export async function getMemeByIdQuery(meme_id: string, user_id: string, supabas
         .eq(MEMEFIELDS.MEME_ID, meme_id)
         .single();
     console.log("Fetched meme data: " + JSON.stringify(memeData));
-    
+
     memeError || !memeData && throwException(HTTP_STATUS_CODE.NOT_FOUND, MEME_ERROR_MESSAGES.MEME_NOT_FOUND);
 
 
