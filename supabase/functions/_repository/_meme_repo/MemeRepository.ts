@@ -237,13 +237,11 @@ export async function getMemeByIdQuery(meme_id: string, user_id: string, supabas
         .eq(MEMEFIELDS.MEME_ID, meme_id)
         .single();
     console.log("Fetched meme data: " + JSON.stringify(memeData));
+    
+    memeError || !memeData && throwException(HTTP_STATUS_CODE.NOT_FOUND, MEME_ERROR_MESSAGES.MEME_NOT_FOUND);
 
-    if (memeError || !memeData) {
-        logger.error("Error fetching meme by ID: " + (memeError?.message || "Unknown error"));
-        return { data: null, error: "Meme not found" };
-    }
 
-    const memeOwnerId = memeData.user_id;
+    const memeOwnerId = memeData?.user_id;
 
     // Step 2: Check if the user's account is private
     const { data: userData, error: userError } = await supabaseClient
@@ -255,12 +253,10 @@ export async function getMemeByIdQuery(meme_id: string, user_id: string, supabas
 
     console.log("Fetched user data: " + JSON.stringify(userData));
 
-    if (userError || !userData) {
-        logger.error("Error fetching user preferences for user ID " + memeOwnerId + ": " + (userError?.message || "Unknown error"));
-        return { data: null, error: userError?.message || "Meme owner not found" };
-    }
+    !userData|| userError  && throwException(HTTP_STATUS_CODE.NOT_FOUND, "Meme owner not found");
+  
 
-    const isPrivate = userData.preferences === "Private";
+    const isPrivate = userData?.preferences === "Private";
 
     // Step 3: If account is private, check if the requester is a follower
     if (isPrivate) {
@@ -271,14 +267,11 @@ export async function getMemeByIdQuery(meme_id: string, user_id: string, supabas
             .eq("user_id", memeOwnerId)
             .limit(1);
 
-        if (followerError || !followerData?.length) {
-            logger.error("Access denied: User " + user_id + " is not following private user " + memeOwnerId);
-            return { data: null, error: "Access denied: This account is private." };
-        }
+        followerError || !followerData?.length && throwException(HTTP_STATUS_CODE.FORBIDDEN, "Access denied: User " + user_id + " is not following private user " + memeOwnerId);
     }
 
     // Step 4: Return meme details if access is allowed
-    return { data: memeData, error: null };
+    return memeData;
 }
 
 
