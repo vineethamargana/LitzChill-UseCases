@@ -294,7 +294,7 @@ export async function updateMemeStatusQuery(
     meme_status: string,
     user_id: string,
     supabaseClient = supabase
-): Promise<{ data: object | null, error: object | null }> {
+): Promise< object> {
     const { data, error } = await supabaseClient
         .from(TABLE_NAMES.MEME_TABLE)
         .update({ meme_status: meme_status })
@@ -304,6 +304,7 @@ export async function updateMemeStatusQuery(
         .select("meme_id, meme_status, meme_title")
         .single();
 
-    return { data, error };
-}
+        console.log(error);
 
+        return data ? data : throwException(HTTP_STATUS_CODE.NOT_FOUND, MEME_ERROR_MESSAGES.FAILED_TO_UPDATE);
+}
