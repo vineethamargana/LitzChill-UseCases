@@ -2,6 +2,7 @@
 import { HTTP_STATUS_CODE } from "@shared/_constants/HttpStatusCodes.ts";
 import { COMMON_ERROR_MESSAGES } from "@shared/_messages/ErrorMessages.ts";
 import { ErrorResponse } from "@response/Response.ts";
+import { throwException } from "@shared/ExceptionHandling/ThrowException.ts";
 
  
 //performing static and dynamic routing and if matching than calling handler
@@ -23,10 +24,7 @@ export async function routeHandler(req:Request,routes:Record<string,any>){
 
   //if method is not match is undefined then we are returning method not allowed
   if(allMatchedMethodRoutes==undefined){
-        return ErrorResponse(
-           HTTP_STATUS_CODE.METHOD_NOT_ALLOWED,
-           COMMON_ERROR_MESSAGES.METHOD_NOT_ALLOWED,
-          )
+        throwException(HTTP_STATUS_CODE.METHOD_NOT_ALLOWED,COMMON_ERROR_MESSAGES.METHOD_NOT_ALLOWED);
   }
 
   //checking our path is present into path key array
@@ -34,10 +32,7 @@ export async function routeHandler(req:Request,routes:Record<string,any>){
   if(allRoutes.includes(path)){
     if (!allMatchedMethodRoutes || !allMatchedMethodRoutes?.[path]) {
            console.error(`Method '${method}' not allowed for route '${path}'`);
-           return ErrorResponse(
-               HTTP_STATUS_CODE.METHOD_NOT_ALLOWED,
-               COMMON_ERROR_MESSAGES.METHOD_NOT_ALLOWED,
-              )
+           throwException(HTTP_STATUS_CODE.METHOD_NOT_ALLOWED,COMMON_ERROR_MESSAGES.METHOD_NOT_ALLOWED);
       }  
   }
 
@@ -59,14 +54,14 @@ export async function routeHandler(req:Request,routes:Record<string,any>){
    const trimmedPath = path.split('/').slice(0, -1).join('/')+'/:id';
    console.log("trimmed path",trimmedPath);
     if(allRoutes.includes(trimmedPath)){
-      return ErrorResponse(
+      throwException(
            HTTP_STATUS_CODE.METHOD_NOT_ALLOWED,
            COMMON_ERROR_MESSAGES.METHOD_NOT_ALLOWED,
          )
     }  
  
     //returning route not found response
-  return ErrorResponse(
+  throwException(
        HTTP_STATUS_CODE.NOT_FOUND,
        COMMON_ERROR_MESSAGES.ROUTE_NOT_FOUND,
      
