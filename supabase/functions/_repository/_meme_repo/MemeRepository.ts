@@ -202,9 +202,11 @@ export async function fetchMemes(page: number, limit: number, sort: string, tags
     query = query.range((page - 1) * limit, page * limit - 1);
 
 
-    const { data } = await query;
+    const { data ,error} = await query;
 
-    return data ? data :throwException(HTTP_STATUS_CODE.NOT_FOUND,MEME_ERROR_MESSAGES.NO_MEMES);
+    if (error || !data || data.length === 0) throwException(HTTP_STATUS_CODE.NOT_FOUND, MEME_ERROR_MESSAGES.NO_MEMES);
+    
+    return data;
 }
 
 /**

@@ -1,3 +1,4 @@
+// deno-lint-ignore-file
 import { fetchMemes } from "@repository/_meme_repo/MemeRepository.ts";
 import { SuccessResponse } from "@response/Response.ts";
 import { HTTP_STATUS_CODE } from "@shared/_constants/HttpStatusCodes.ts";
@@ -25,7 +26,7 @@ function getParams(req: Request){
  * @returns {Promise<Response>} - The response object containing the fetched memes.
  */
 
-async function getAllMemes(req: Request, getAllMemes = fetchMemes): Promise<Response> {
+async function getAllMemes(req: Request,params: Record<string, string>, getAllMemes = fetchMemes): Promise<Response> {
     const logger = Logger.getInstance();
     // Get the parameters from the request URL
     const { page, limit, sort, tag } = getParams(req);
