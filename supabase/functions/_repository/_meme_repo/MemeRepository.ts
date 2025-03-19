@@ -10,17 +10,12 @@ import Logger from "@shared/Logger/logger.ts";
 const logger = Logger.getInstance();
 
 export async function meme_exists(meme_id: string, supabaseClient = supabase) {
-    // Check if meme exists and ensure it's not deleted
     const { data: existingMeme, error: fetchError } = await supabaseClient
         .from(TABLE_NAMES.MEME_TABLE)
         .select("*")
         .eq(MEMEFIELDS.MEME_ID, meme_id)
         .neq(MEMEFIELDS.MEME_STATUS,MEME_STATUS.DELETED)
-        .maybeSingle();  // Ensure only one row is returned 
-
-
-        logger.info(existingMeme+" "+fetchError);
-
+        .single();
 
     if (fetchError || !existingMeme)  return null;
     return existingMeme;
@@ -33,69 +28,40 @@ export async function meme_exists(meme_id: string, supabaseClient = supabase) {
  * @param {string} memeTitle - The title of the meme associated with the file.
  * @returns {Promise<string | null>} - The public URL of the uploaded file, if successful; otherwise, null.
  */
-export async function uploadFileToBucket(mediaFile: File, memeTitle: string,supabaseClient=supabase): Promise<string | null> {
+export async function uploadFileToBucket(mediaFile: File, memeTitle: string, supabaseClient = supabase): Promise<string | null> {
     logger.log("Uploading media file");
-
+ 
     try {
         const allowedTypes: string[] = ["image/jpeg", "image/png", "image/gif", "video/mp4", "video/avi", "video/mpeg"];
-        if (!allowedTypes.includes(mediaFile.type)) {
-            logger.error(`Unsupported file type: ${JSON.stringify(mediaFile.type)}`);
-            return null;
-        }
-
-        // Generate a hash of the file content
-        const fileHash = await generateFileHash(mediaFile);
-        logger.log(`Generated file hash: ${fileHash}`);
-
-        // Construct file path
+        if (!allowedTypes.includes(mediaFile.type))  return null
+ 
+        // Construct file path using the original filename
         const extension = mediaFile.name.split('.').pop()?.toLowerCase() || "";
-        logger.log(`File extension: ${extension}`);
-        const sanitizedFileName = `${memeTitle.replace(/\s+/g, "_")}-${fileHash}.${extension}`;
-        logger.log(`Sanitized file name: ${sanitizedFileName}`);
+        const sanitizedFileName = `${memeTitle.replace(/\s+/g, "_")}-${Date.now()}.${extension}`;
         const filePath = `memes/${sanitizedFileName}`;
-        logger.log(`File path: ${filePath}`);
-
-        // **Check if file already exists** before uploading
-        const { data: existingFileUrl } = supabaseClient.storage.from(BUCKET_NAME.MEMES).getPublicUrl(filePath);
-
-        if (existingFileUrl?.publicUrl) {
-            logger.log("File already exists. Returning existing public URL.");
-            return existingFileUrl.publicUrl;
-        }
-
+ 
         // Upload new file
-        logger.log("File not found in the bucket. Proceeding with upload...");
+        logger.log("Uploading file...");
         const { data: uploadData, error: uploadError } = await supabaseClient.storage
             .from(BUCKET_NAME.MEMES)
             .upload(filePath, mediaFile, {
                 cacheControl: "3600",
-                upsert: false,  // Don't overwrite existing files
+                upsert: false, // Do not overwrite existing files
                 contentType: mediaFile.type,
             });
-
-        if (uploadError || !uploadData) {
-            logger.error(`Error uploading file: ${JSON.stringify(uploadError)}`);
-            return null;
-        }
-
+ 
+        if (uploadError || !uploadData) return null;
+ 
         logger.log("File uploaded successfully.");
-
-        // Return public URL of uploaded file
+ 
+        // Get the public URL of the uploaded file
         const { data: publicUrlData } = supabaseClient.storage.from(BUCKET_NAME.MEMES).getPublicUrl(filePath);
-        logger.log(`Public URL: ${publicUrlData?.publicUrl}`);
         return publicUrlData?.publicUrl || null;
-
+ 
     } catch (error) {
         logger.error(`Error in uploadFileToBucket: ${error}`);
         return null;
     }
-}
-
-// Helper function to generate SHA-256 hash of a file
-async function generateFileHash(file: File): Promise<string> {
-    const arrayBuffer = await file.arrayBuffer();
-    const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
-    return Array.from(new Uint8Array(hashBuffer)).map(byte => byte.toString(16).padStart(2, "0")).join("");
 }
 
 /**
@@ -106,9 +72,6 @@ async function generateFileHash(file: File): Promise<string> {
  * @returns {Promise<{ data: object | null, error: object | null }>} - The inserted meme data if successful; otherwise, an error.
  */
 export async function createMemeQuery(meme: Partial<Meme>,supabaseClient = supabase): Promise<{ data: object | null, error: object | null }> {
-    
-    logger.log("Attempting to insert meme:"+ meme);
-
     const { data, error } = await supabaseClient
         .from(TABLE_NAMES.MEME_TABLE)
         .insert([{
@@ -119,8 +82,8 @@ export async function createMemeQuery(meme: Partial<Meme>,supabaseClient = supab
         }])
         .select("*")
         .single();
-        console.log("[QUERY] Insert Result:", { data, error });
-    return { data, error };
+
+        return { data, error };
 }
 
 /**
@@ -138,52 +101,16 @@ export async function updatememeQuery(meme: Partial<Meme>,user_type: string,supa
     const conditions = isAdmin
       ? { [MEMEFIELDS.MEME_ID]: meme.meme_id }
       : { [MEMEFIELDS.MEME_ID]: meme.meme_id, [MEMEFIELDS.USER_ID]: meme.user_id };
-  
-    console.log("Update conditions:", conditions);
-  
+    
     const { data, error } = await supabaseClient 
       .from(TABLE_NAMES.MEME_TABLE)
       .update(meme)
       .neq(MEMEFIELDS.MEME_STATUS, MEME_STATUS.DELETED)
       .match(conditions)
       .select("meme_id, meme_title, tags, updated_at")
-      .single();
-  
-    if (error) logger.error(`Failed to update meme: ${JSON.stringify(error)}`);
-  
+      .single();  
     return { data, error };
   }
-  
-
-// export async function updatememeQuery(
-//     meme: Partial<Meme>,
-//     user_type: string,
-//     supabaseClient = supabase // Default to real Supabase, but allows mocking
-//   ): Promise<{ data: object | null; error: object | null }> {
-//     const isAdmin = user_type === USER_ROLES.ADMIN_ROLE;
-//     const conditions = isAdmin
-//       ? { [MEMEFIELDS.MEME_ID]: meme.meme_id }
-//       : { [MEMEFIELDS.MEME_ID]: meme.meme_id, [MEMEFIELDS.USER_ID]: meme.user_id };
-  
-//     console.log("[QUERY] Updating Meme with Conditions:", conditions);
-//     console.log("[QUERY] Update Data:", meme);
-  
-//     const { data, error } = await supabaseClient
-//       .from(TABLE_NAMES.MEME_TABLE)
-//       .update(meme)
-//       .neq(MEMEFIELDS.MEME_STATUS, MEME_STATUS.DELETED) // Ensure meme isn't already deleted
-//       .match(conditions)
-//       .select("meme_id, meme_title, tags, updated_at")
-//       .single();
-  
-//     if (error) {
-//       console.error("[ERROR] Failed to update meme:", error);
-//       logger.error(`Failed to update meme: ${JSON.stringify(error)}`);
-//     }
-  
-//     console.log("[QUERY] Update Result:", { data, error });
-//     return { data, error };
-//   }
   
 
 /**
@@ -209,10 +136,9 @@ export async function deleteMemeQuery( meme_id: string, user_id: string, user_ty
       .match(conditions)
       .select("meme_id, meme_status")
       .single();
-  
-    if (error) logger.error(`Failed to delete meme: ${error.message}`);
-    return { data, error };
+      return { data, error };
   }
+ 
   
 /**
   * Fetches memes that are not deleted and optionally filters them by tags.
@@ -227,16 +153,12 @@ export async function deleteMemeQuery( meme_id: string, user_id: string, user_ty
 export async function fetchMemes(page: number,limit: number,sort: string,tags: string | null,supabaseClient = supabase): 
                                 Promise<{ data: object[] | null, error: object | null }> {
     // Subquery to fetch public users
-    console.log("Subquery to fetch public users")
     const { data: publicUsers, error: publicUsersError } = await supabaseClient
         .from("users")
         .select("user_id,preferences")
         .eq("preferences", "Public");
 
-    if (publicUsersError || !publicUsers) {
-        logger.error("Error fetching public users: " + publicUsersError?.message);
-        return { data: null, error: publicUsersError };
-    }
+    if (publicUsersError || !publicUsers)  return { data: null, error: publicUsersError };
 
     // Use map() to create an array of public user IDs
     const publicUserIds = publicUsers.map(function(user: { user_id: any; }) {
@@ -264,13 +186,12 @@ export async function fetchMemes(page: number,limit: number,sort: string,tags: s
 
     const { data, error } = await query;
 
-    if (error) {
-        logger.error("Error fetching memes: " + error.message);
-        return { data: null, error };
-    }
+    if (error) return { data: null, error };
+
     console.log("Memes fetched successfully"+data);
     return { data, error: null };
 }
+
 
 /**
  * Fetches a meme by its ID.
@@ -280,19 +201,14 @@ export async function fetchMemes(page: number,limit: number,sort: string,tags: s
  */
 export async function getMemeByIdQuery(meme_id: string, user_id: string,supabaseClient = supabase) {
     // Step 1: Fetch meme details (ensure it returns at most 1 row)
-    console.log("Attempting to fetch meme by ID: " + meme_id);
     const { data: memeData, error: memeError } = await supabaseClient
         .from(TABLE_NAMES.MEME_TABLE)
         .select("meme_title, image_url, tags, like_count, created_at, user_id")
         .neq(MEMEFIELDS.MEME_STATUS, MEME_STATUS.DELETED)
         .eq(MEMEFIELDS.MEME_ID, meme_id)
         .single();  
-        console.log("Fetched meme data: " + JSON.stringify(memeData));
 
-    if (memeError || !memeData) {
-        logger.error("Error fetching meme by ID: " + (memeError?.message || "Unknown error"));
-        return { data: null, error:"Meme not found" };
-    }
+    if (memeError || !memeData)         return { data: null, error:"Meme not found" };
 
     const memeOwnerId = memeData.user_id;
 
@@ -304,12 +220,7 @@ export async function getMemeByIdQuery(meme_id: string, user_id: string,supabase
         .limit(1)  
         .single(); 
 
-        console.log("Fetched user data: " + JSON.stringify(userData));
-
-    if (userError || !userData) {
-        logger.error("Error fetching user preferences for user ID " + memeOwnerId + ": " + (userError?.message || "Unknown error"));
-        return { data: null, error: userError?.message || "Meme owner not found" };
-    }
+    if (userError || !userData) return { data: null, error: userError?.message || "Meme owner not found" };
 
     const isPrivate = userData.preferences === "Private";
 
@@ -322,11 +233,7 @@ export async function getMemeByIdQuery(meme_id: string, user_id: string,supabase
             .eq("user_id", memeOwnerId)
             .limit(1);  
 
-        if (followerError || !followerData?.length) {
-            logger.error("Access denied: User " + user_id + " is not following private user " + memeOwnerId);
-            return { data: null, error: "Access denied: This account is private." };
-        }
-    }
+        if (followerError || !followerData?.length)  return { data: null, error: "Access denied: This account is private." };    }
 
     // Step 4: Return meme details if access is allowed
     return { data: memeData, error: null };

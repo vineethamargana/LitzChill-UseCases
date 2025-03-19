@@ -19,22 +19,12 @@ export default async function markNotification(_req: Request, params: Record<str
         const notification_id = params.id;
         const user_id = params.user_id;
         
-        logger.info(`User_id: ${user_id}, Notification_id: ${notification_id}`);
 
-        // Validate the notification ID
-        if (!notification_id || !V4.isValid(notification_id)) {
-            logger.info("Validation failed: Missing parameters.");
-            return await ErrorResponse(HTTP_STATUS_CODE.BAD_REQUEST, NOTIFICATION_ERRORS.MISSING_ID);
-        }
+        if (!notification_id || !V4.isValid(notification_id)) return ErrorResponse(HTTP_STATUS_CODE.BAD_REQUEST, NOTIFICATION_ERRORS.MISSING_ID);
 
         // Mark the notification as read
         const isSuccessful = await markNotificationsAsRead(notification_id,user_id);
-        logger.info(`Marking result: ${JSON.stringify(isSuccessful)}`);
-        if (!isSuccessful) {
-            logger.info("Marking failed");
-            return ErrorResponse(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR, NOTIFICATION_ERRORS.FAILED_TO_UPDATE);
-        }
-
+        if (!isSuccessful)  return ErrorResponse(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR, NOTIFICATION_ERRORS.FAILED_TO_UPDATE);
         // Return a success response
         return SuccessResponse(HTTP_STATUS_CODE.OK, NOTIFICATION_SUCCESS.NOTIFICATION_UPDATED);
         
