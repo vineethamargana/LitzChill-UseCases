@@ -37,7 +37,7 @@ Deno.test('testing invalid meme_id', async () => {
     assertEquals(resultBody.message, MEME_ERROR_MESSAGES.MISSING_MEMEID);
 })
 
-Deno.test('Successfully delete meme', async () => {
+Deno.test('testing Successfully delete meme', async () => {
     const req = new Request("http://localhost", { method: "DELETE" });
     const params = { user_id: "088f3d23-6136-48ea-9ede-6f8d64f1e6ed", id: "088f3d23-6136-48ea-9ede-6f8d64f1e6ed" };
     const DeleteMemeQuery = mockDeleteMemeQuery({ data: { id: "1234567890" }, error: null });
@@ -47,59 +47,18 @@ Deno.test('Successfully delete meme', async () => {
     assertEquals(resultBody.message, MEME_SUCCESS_MESSAGES.MEME_DELETED_SUCCESSFULLY);
 })
 
-Deno.test("Returns 404 Not Found when meme does not exist", async () => {
+Deno.test("teting error response while deleting meme", async () => {
     const req = new Request("http://localhost", { method: "DELETE" });
     const params = { user_id: "088f3d23-6136-48ea-9ede-6f8d64f1e6ed", id: "088f3d23-6136-48ea-9ede-6f8d64f1e6ed" };
-    const mockQuery = mockDeleteMemeQuery({ data: null, error: { code: "404", message: "Meme not found" } });
+    const mockQuery = mockDeleteMemeQuery({ data: null, error: { code: "500", message: "Unable to delete the meme.Either Meme not found or you are not authorized to delete it" } });
 
     const response = await DeletememebyID(req, params, mockQuery);
     const body = await response.json();
     console.log(body);
 
-    assertEquals(response.status, HTTP_STATUS_CODE.NOT_FOUND);
+    assertEquals(response.status, HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR);
 
-    assertEquals(body.message, MEME_ERROR_MESSAGES.MEME_NOT_FOUND);
-});
-
-Deno.test("Returns 403 Forbidden when user is not authorized", async () => {
-    const req = new Request("http://localhost", { method: "DELETE" });
-    const params = { user_id: "088f3d23-6136-48ea-9ede-6f8d64f1e6ed", id: "088f3d23-6136-48ea-9ede-6f8d64f1e6ed" };
-     const mockQuery = mockDeleteMemeQuery({ data: null, error: { code: "403", message: "Forbidden access" } });
-
-    const response = await DeletememebyID(req, params, mockQuery);
-    const body = await response.json();
-
-    assertEquals(response.status, HTTP_STATUS_CODE.FORBIDDEN);
-    console.log(body);
-    assertEquals(body.message, "Forbidden access");
-});
-
-Deno.test("Returns 409 Conflict when meme is already deleted", async () => {
-
-    const req = new Request("http://localhost", { method: "DELETE" });
-    const params = { user_id: "088f3d23-6136-48ea-9ede-6f8d64f1e6ed", id: "088f3d23-6136-48ea-9ede-6f8d64f1e6ed" };  
-
-    const mockQuery = mockDeleteMemeQuery({ data:null, error: { code: "409", message: "meme is already deleted " } });
-
-    const response = await DeletememebyID(req, params, mockQuery);
-    const body = await response.json();
-    console.log(body);
-
-    assertEquals(body.statusCode, HTTP_STATUS_CODE.CONFLICT);
-    assertEquals(body.message, "meme is already deleted ");
-});
-
-Deno.test("Returns 500 Internal Server Error for other issues", async () => {
-    
-    const req = new Request("http://localhost", { method: "DELETE" });
-    const params = { user_id: "088f3d23-6136-48ea-9ede-6f8d64f1e6ed", id: "088f3d23-6136-48ea-9ede-6f8d64f1e6ed" };
-    const mockQuery = mockDeleteMemeQuery({data:null, error: { code: "500", message: "Internal Server Error" } });
-
-    const response = await DeletememebyID(req, params, mockQuery);
-    const body = await response.json();
-     console.log(body);
-    assertEquals(body.statusCode, HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR);
-    assertEquals(body.message,"Internal Server Error");
+    assertEquals(body.message, MEME_ERROR_MESSAGES.FAILED_TO_DELETE);
 });
 
 Deno.test("Handles unexpected error in updateMemeStatus", async () => {

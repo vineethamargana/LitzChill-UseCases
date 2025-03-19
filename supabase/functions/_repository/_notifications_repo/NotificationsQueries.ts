@@ -6,45 +6,6 @@ import { TABLE_NAMES } from "@shared/_db_table_details/TableNames.ts";
 import Logger from "@shared/Logger/logger.ts";
 
 const logger = Logger.getInstance();
- 
-// /**
-//  * Function to add a like notification to the notifications list.
-//  * 
-//  * @param user_id - The unique identifier of the user.
-//  * @param meme_title - The title of the meme.
-//  * @param type - The type of notification.
-//  * @param status - The status of the meme (e.g., "approved", "rejected").
-//  * @returns {Promise<object | null>} - Returns the created notification data or null if an error occurs.
-//  */
-// export async function addNotifications( user_id: string,meme_title: string, type: string, status: string): Promise<object | null> {
-//     // Map status to human-readable text
-//     const statusTextMap: Record<string, string> = {
-//         [MEME_STATUS.REJECTED]: "rejected",
-//         [MEME_STATUS.APPROVED]: "approved",
-//     };
-//     const readableStatus = statusTextMap[status] || status;
-
-//     const notificationContent = `Your meme ${meme_title} has been ${readableStatus}.`;
-//     logger.log("Notification content:"+ notificationContent);
-
-//     const { data, error } = await supabase
-//         .from(TABLE_NAMES.NOTIFICATIONS_TABLE)
-//         .insert({
-//             user_id: user_id,
-//             content: notificationContent,
-//             type: type,
-//             created_at: new Date().toISOString(),
-//             read_status: false,
-//         })
-//         .select("*");
-
-//     if (error || !data) {
-//         logger.error("Error adding notification:"+ error);
-//         return null;
-//     }
-//     return data;
-// }
-
 
 /**
  * Function to get notifications of a user.

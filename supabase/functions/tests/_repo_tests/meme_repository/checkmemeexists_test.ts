@@ -9,7 +9,7 @@ function mockSupabaseResponse(data: object | null, error: any) {
             select: () => ({
                 eq: () => ({
                     neq: () => ({
-                        maybeSingle: () => Promise.resolve({ data, error }),
+                        single: () => Promise.resolve({ data, error }),
                     }),
                 }),
             }),

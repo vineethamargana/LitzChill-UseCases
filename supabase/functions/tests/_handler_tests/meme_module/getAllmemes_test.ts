@@ -20,8 +20,9 @@ function mockGetAllMemesQuery(response:{data:any,error:any}) {
 Deno.test('getAllMemesQuery- successful', async () => {
     const req = new Request("http://localhost?page=2&limit=20&sort=newest&tags=funny", { method: "GET" });
     const mockQuery = mockGetAllMemesQuery({data:[{meme_id:"50e8400-e29b-41d4-a716-446655440000",meme_title:"funny meme"}],error:null});
+    const params = { id: "50e8400-e29b-41d4-a716-446655440000",user_id: "50e8400-e29b-41d4-af16-446655440000",user_type:"user" };
  
-    const result = await getAllMemes(req, mockQuery);
+    const result = await getAllMemes(req, params, mockQuery);
     const resultBody = await result.json();
 
     console.log(resultBody);
@@ -32,8 +33,10 @@ Deno.test('getAllMemesQuery- successful', async () => {
  Deno.test('Success when page parameter is not provided', async () => {
     const req = new Request("http://localhost?limit=20&sort=newest&tags=funny", { method: "GET" });
     const mockQuery = mockGetAllMemesQuery({data:[{meme_id:"50e8400-e29b-41d4-a716-446655440000",meme_title:"funny meme"}],error:null});
-    const result = await getAllMemes(req, mockQuery);
-    const resultBody = await result.json();
+    
+    const params = { id: "50e8400-e29b-41d4-a716-446655440000",user_id: "50e8400-e29b-41d4-af16-446655440000",user_type:"user" };
+ 
+    const result = await getAllMemes(req, params, mockQuery);    const resultBody = await result.json();
     console.log(resultBody);
     assertEquals(result.status, 200);
     assertEquals(resultBody.message, MEME_SUCCESS_MESSAGES.MEMES_FETCHED_SUCCESSFULLY)
@@ -42,8 +45,9 @@ Deno.test('getAllMemesQuery- successful', async () => {
 Deno.test('Sucess when sort parameter is not specified', async () => {
     const req = new Request("http://localhost?page=2&limit=20&tags=funny", { method: "GET" });
     const mockQuery = mockGetAllMemesQuery({data:[{meme_id:"50e8400-e29b-41d4-a716-446655440000",meme_title:"funny meme"}],error:null});
-    const result = await getAllMemes(req, mockQuery);
-    const resultBody = await result.json();
+    const params = { id: "50e8400-e29b-41d4-a716-446655440000",user_id: "50e8400-e29b-41d4-af16-446655440000",user_type:"user" };
+ 
+    const result = await getAllMemes(req, params, mockQuery);    const resultBody = await result.json();
     console.log(resultBody);
     assertEquals(result.status, 200);
     assertEquals(resultBody.message, MEME_SUCCESS_MESSAGES.MEMES_FETCHED_SUCCESSFULLY)
@@ -51,8 +55,9 @@ Deno.test('Sucess when sort parameter is not specified', async () => {
 Deno.test('Sucess when tags parameter is not specified', async () => {
     const req = new Request("http://localhost?page=2&limit=20&sort=newest", { method: "GET" });
     const mockQuery = mockGetAllMemesQuery({data:[{meme_id:"50e8400-e29b-41d4-a716-446655440000",meme_title:"funny meme"}],error:null});
-    const result = await getAllMemes(req, mockQuery);
-    const resultBody = await result.json();
+    const params = { id: "50e8400-e29b-41d4-a716-446655440000",user_id: "50e8400-e29b-41d4-af16-446655440000",user_type:"user" };
+ 
+    const result = await getAllMemes(req, params, mockQuery);    const resultBody = await result.json();
     console.log(resultBody);
     assertEquals(result.status, 200);
     assertEquals(resultBody.message, MEME_SUCCESS_MESSAGES.MEMES_FETCHED_SUCCESSFULLY)
@@ -61,8 +66,9 @@ Deno.test('Sucess when tags parameter is not specified', async () => {
 Deno.test('Success when limit parameter is not specified', async () => {
     const req = new Request("http://localhost?page=2&sort=newest&tags=good",{method: 'GET'});
     const mockQuery = mockGetAllMemesQuery({data:[{meme_id:"50e8400-e29b-41d4-a716-446655440000",meme_title:"funny meme"}],error:null});
-    const result = await getAllMemes(req, mockQuery);
-    const resultBody = await result.json();
+    const params = { id: "50e8400-e29b-41d4-a716-446655440000",user_id: "50e8400-e29b-41d4-af16-446655440000",user_type:"user" };
+ 
+    const result = await getAllMemes(req, params, mockQuery);    const resultBody = await result.json();
     console.log(resultBody);
     assertEquals(result.status, 200);
     assertEquals(resultBody.message, MEME_SUCCESS_MESSAGES.MEMES_FETCHED_SUCCESSFULLY)
@@ -72,8 +78,9 @@ Deno.test('Success when limit parameter is not specified', async () => {
  Deno.test('getAllMemesQuery- failed', async () => {
     const req = new Request("http://localhost?page=2&limit=20&sort=newest&tags=funny", { method: "GET" });
     const mockQuery = mockGetAllMemesQuery({data:null,error:MEME_ERROR_MESSAGES.NO_MEMES});
-    const result = await getAllMemes(req, mockQuery);
-    const resultBody = await result.json();
+    const params = { id: "50e8400-e29b-41d4-a716-446655440000",user_id: "50e8400-e29b-41d4-af16-446655440000",user_type:"user" };
+ 
+    const result = await getAllMemes(req, params, mockQuery);    const resultBody = await result.json();
     console.log(resultBody);
     assertEquals(resultBody.statusCode, HTTP_STATUS_CODE.NOT_FOUND);
     assertEquals(resultBody.message, MEME_ERROR_MESSAGES.NO_MEMES);
@@ -84,8 +91,9 @@ Deno.test('Success when limit parameter is not specified', async () => {
 Deno.test('getAllMemesQuery- database connection failed', async () => {
     const req = new Request("http://localhost?page=2&limit=20&sort=newest&tags=funny", { method: "GET" });
     const mockQuery = mockGetAllMemesQuery({data:null,error:"Database connection failed"});
-    const result = await getAllMemes(req, mockQuery);
-    const resultBody = await result.json();
+    const params = { id: "50e8400-e29b-41d4-a716-446655440000",user_id: "50e8400-e29b-41d4-af16-446655440000",user_type:"user" };
+ 
+    const result = await getAllMemes(req, params, mockQuery);    const resultBody = await result.json();
     console.log(resultBody);
     assertEquals(result.status, HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR);
     assertEquals(resultBody.message, COMMON_ERROR_MESSAGES.INTERNAL_SERVER_ERROR);

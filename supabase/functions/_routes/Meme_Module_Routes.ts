@@ -7,7 +7,7 @@ import updateMeme from "@handler/_meme_module/UpateMeme.ts";
 import DeletememebyID from "@handler/_meme_module/DeleteMeme.ts";
 import getAllMemes from "@handler/_meme_module/GetAllMemes.ts";
 import updateMemeStatus from "@handler/_meme_module/UpdateMemeStatus.ts";
-import getmemebyID from "../_handler/_meme_module/memegettingbyiD.ts";
+import getmemebyID from "@handler/_meme_module/memegettingbyiD.ts";
 // Define your routes with role-based authorization
 export const MemeRoutes = {
     [HTTP_METHOD.POST]: {

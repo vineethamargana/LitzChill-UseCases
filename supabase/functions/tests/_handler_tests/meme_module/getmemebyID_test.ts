@@ -2,8 +2,8 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/assert_equals.ts";
 import { HTTP_STATUS_CODE } from "@shared/_constants/HttpStatusCodes.ts";
 import { MEME_ERROR_MESSAGES, MEME_SUCCESS_MESSAGES } from "@shared/_messages/Meme_Module_Messages.ts";
-import getmemebyID from "@handler/_meme_module/getMemeByID.ts";
 import { COMMON_ERROR_MESSAGES } from "@shared/_messages/ErrorMessages.ts";
+import getmemebyID from "@handler/_meme_module/memegettingbyiD.ts";
 
 
 Deno.test("getmemebyID- missing meme ID", async () => {

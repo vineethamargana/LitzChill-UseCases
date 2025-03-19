@@ -1,3 +1,4 @@
+// deno-lint-ignore-file
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/assert_equals.ts";
 import getNotifications from "@handler/_notifications_module/GetNotifications.ts";
 import { HTTP_STATUS_CODE } from "@shared/_constants/HttpStatusCodes.ts";
@@ -10,7 +11,7 @@ function mockgetNotificationsQuery(response: { data: any; error: any }) {
         if (response.error === "Database connection failed") {
             throw new Error(response.error);
         }
-        return response;
+        return await response;
     };
 }
 Deno.test("should return success when notifications fetched successfully",async()=>{
