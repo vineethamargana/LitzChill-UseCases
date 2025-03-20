@@ -1,171 +1,69 @@
-// deno-lint-ignore-file require-await no-explicit-any
-import { updatememeQuery } from "../../../_repository/_meme_repo/MemeRepository.ts";
-import { USER_ROLES } from "../../../_shared/_constants/UserRoles.ts";
+// deno-lint-ignore-file
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/assert_equals.ts";
+import { updatememeQuery } from "@repository/_meme_repo/MemeRepository.ts";
+import { USER_ROLES } from "@shared/_constants/UserRoles.ts";
 
 const TEST_MEME_ID = "0488fbc7-e8b9-4341-9e5b-9f0eb90a6d84";
 const TEST_USER_ID = "9a9afb14-acbc-481a-a315-4b946dbf0491";
 const UPDATED_MEME = { meme_id: TEST_MEME_ID, meme_title: "Title Updated", tags: ["funny"] };
 
+let receivedConditions: object | null = null;
 
-const createMockSupabase = (mockResponse: (conditions: object) => any) => {
-    return {
-      from: () => {
-        return {
-          update: () => {
-            return {
-              neq: () => {
-                return {
-                  match: (conditions: object) => {
-                    return {
-                      select: () => {
-                        return {
-                          single: async () => mockResponse(conditions),
-                        };
-                      },
-                    };
-                  },
-                };
-              },
-            };
-          },
-        };
-      },
-    };
+function mockUpdateMemeResponse(conditions: object) {
+  receivedConditions = conditions;
+  return { data: { ...UPDATED_MEME, updated_at: "2025-02-27T12:00:00Z" }, error: null };
+}
+
+function createMockSupabase(mockResponse: (conditions: object) => any) {
+  return {
+    from: () => ({
+      update: () => ({
+        neq: () => ({
+          match: (conditions: object) => ({
+            select: () => ({
+              single: () => Promise.resolve(mockResponse(conditions)),
+            }),
+          }),
+        }),
+      }),
+    }),
   };
+}
 
-  
-
+// Admin can update any meme
 Deno.test("Admin can update any meme", async () => {
-  console.log("\nRunning: Admin can update any meme");
-
-  let receivedConditions: object | null = null;
-
-  function mockUpdateResponse(conditions: object) {
-    receivedConditions = conditions; 
-    return { 
-      data: { ...UPDATED_MEME, updated_at: "2025-02-27T12:00:00Z"}, 
-      error: null
-        };
-  }
-  
-  const mockSupabase = createMockSupabase(mockUpdateResponse);
-  
-
-  console.log("Executing updatememeQuery...");
+  receivedConditions = null;
+  const mockSupabase = createMockSupabase(mockUpdateMemeResponse);
   const result = await updatememeQuery(UPDATED_MEME, USER_ROLES.ADMIN_ROLE, mockSupabase as any);
-
-  const expectedConditions = { meme_id: TEST_MEME_ID };
-  console.log("Expected match conditions:", expectedConditions);
-  console.log("Actual match conditions:", receivedConditions);
-  assertEquals(receivedConditions, expectedConditions);
-
-  const expectedResult = { data: { ...UPDATED_MEME, updated_at: "2025-02-27T12:00:00Z" }, error: null };
-  console.log("Expected result:", expectedResult);
-  console.log("Actual result:", result);
-  assertEquals(result, expectedResult);
-
-  console.log(" Admin update test passed.\n");
+  assertEquals(receivedConditions, { meme_id: TEST_MEME_ID });
+  assertEquals(result, { data: { ...UPDATED_MEME, updated_at: "2025-02-27T12:00:00Z" }, error: null });
 });
 
+// Non-admin can update their own meme
 Deno.test("Non-admin can update their own meme", async () => {
-  console.log("\nRunning: Non-admin can update their own meme");
-
-  let receivedConditions: object | null = null;
-
-  const mockSupabase = createMockSupabase((conditions) => {
-    receivedConditions = conditions;
-    return { data: { ...UPDATED_MEME, updated_at: "2025-02-27T12:00:00Z" }, error: null };
-  });
-
-  console.log("Executing updatememeQuery...");
-  const result = await updatememeQuery(
-    { ...UPDATED_MEME, user_id: TEST_USER_ID }, 
-    USER_ROLES.USER_ROLE,
-    mockSupabase as any
-  );
-
-  const expectedConditions = { meme_id: TEST_MEME_ID, user_id: TEST_USER_ID };
-  console.log("Expected match conditions:", expectedConditions);
-  console.log("Actual match conditions:", receivedConditions);
-  assertEquals(receivedConditions, expectedConditions);
-
-  const expectedResult = { data: { ...UPDATED_MEME, updated_at: "2025-02-27T12:00:00Z" }, error: null };
-  console.log("Expected result:", expectedResult);
-  console.log("Actual result:", result);
-  assertEquals(result, expectedResult);
-
-  console.log(" Non-admin update test passed.\n");
+  receivedConditions = null;
+  const mockSupabase = createMockSupabase(mockUpdateMemeResponse);
+  const result = await updatememeQuery({ ...UPDATED_MEME, user_id: TEST_USER_ID }, USER_ROLES.USER_ROLE, mockSupabase as any);
+  assertEquals(receivedConditions, { meme_id: TEST_MEME_ID, user_id: TEST_USER_ID });
+  assertEquals(result, { data: { ...UPDATED_MEME, updated_at: "2025-02-27T12:00:00Z" }, error: null });
 });
 
-Deno.test("Update should return an error when it fails (Meme not found - 404)", async () => {
-  console.log("\nRunning: Update should return an error when it fails (404)");
-
+// Meme not found (404)
+Deno.test("Update fails when meme not found (404)", async () => {
   const mockSupabase = createMockSupabase(() => ({
     data: null,
-    error: {
-      name: "PostgrestError",
-      message: "Update failed",
-      details: "Meme not found",
-      hint: TEST_MEME_ID,
-      code: "404",
-    },
+    error: { message: "Meme not found", code: 404 },
   }));
-
-  console.log("Executing updatememeQuery...");
   const result = await updatememeQuery(UPDATED_MEME, USER_ROLES.ADMIN_ROLE, mockSupabase as any);
-
-  const expectedResult = {
-    data: null,
-    error: {
-      name: "PostgrestError",
-      message: "Update failed",
-      details: "Meme not found",
-      hint: TEST_MEME_ID,
-      code: "404",
-    },
-  };
-
-  console.log("Expected result:", expectedResult);
-  console.log("Actual result:", result);
-  assertEquals(result, expectedResult);
-
-  console.log(" 404 Error test passed.\n");
+  assertEquals(result, { data: null, error: { message: "Meme not found", code: 404 } });
 });
 
-Deno.test("Update should return an internal server error (500)", async () => {
-  console.log("\nRunning: Update should return an internal server error (500)");
-
+// Internal server error (500)
+Deno.test("Update fails due to internal server error (500)", async () => {
   const mockSupabase = createMockSupabase(() => ({
     data: null,
-    error: {
-      name: "PostgrestError",
-      message: "Internal server error",
-      details: "Unexpected error occurred",
-      hint: "Database connection issue",
-      code: "500",
-    },
+    error: { message: "Unexpected error", code: 500 },
   }));
-
-  console.log("Executing updatememeQuery...");
   const result = await updatememeQuery(UPDATED_MEME, USER_ROLES.ADMIN_ROLE, mockSupabase as any);
-
-  const expectedResult = {
-    data: null,
-    error: {
-      name: "PostgrestError",
-      message: "Internal server error",
-      details: "Unexpected error occurred",
-      hint: "Database connection issue",
-      code: "500",
-    },
-  };
-
-  console.log("Expected result:", expectedResult);
-  console.log("Actual result:", result);
-  assertEquals(result, expectedResult);
-
-  console.log(" Internal server error test passed.\n");
+  assertEquals(result, { data: null, error: { message: "Unexpected error", code: 500 } });
 });
-
-

@@ -123,7 +123,7 @@ export async function updatememeQuery(meme: Partial<Meme>,user_type: string,supa
  * 
  * @returns {Promise<{ data: object | null, error: object | null }>} - The result of the query.
  */
-export async function deleteMemeQuery( meme_id: string, user_id: string, user_type: string,supabaseClient = supabase) {
+export async function deleteMemeQuery( meme_id: string, user_id: string, user_type: string,supabaseClient = supabase):Promise<{ data: object | null, error: object | null }> {
     const isAdmin = user_type === USER_ROLES.ADMIN_ROLE;
     const conditions = isAdmin
       ? { [MEMEFIELDS.MEME_ID]: meme_id }

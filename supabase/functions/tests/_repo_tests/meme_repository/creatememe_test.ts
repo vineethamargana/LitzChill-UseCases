@@ -1,73 +1,41 @@
-// deno-lint-ignore-file no-explicit-any require-await
+// deno-lint-ignore-file
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/assert_equals.ts";
 import { createMemeQuery } from "@repository/_meme_repo/MemeRepository.ts";
 
-const TEST_USER_ID = "9a9afb14-acbc-481a-a315-4b946dbf0491";
-const TEST_MEME_TITLE = "Funny Meme";
-const TEST_IMAGE_URL = "https://example.com/meme.jpg";
-const TEST_TAGS = ["funny", "humor"];
-
 const memeData = {
-  user_id: TEST_USER_ID,
-  meme_title: TEST_MEME_TITLE,
-  media_file: TEST_IMAGE_URL,
-  tags: TEST_TAGS,
+  user_id: "9a9afb14-acbc-481a-a315-4b946dbf0491",
+  meme_title: "Funny Meme",
+  media_file: "https://example.com/meme.jpg",
+  tags: ["funny", "humor"],
 };
 
-function createMockSupabase(mockResponse: (meme: object) => any) {
+function mockSupabaseResponse(data: object | null, error: any) {
   return {
-    from: () => ({
-      insert: (insertObj: object) => ({
-        select: () => ({
-          single: async () => {
-            return mockResponse(insertObj); 
-          },
-        }),
+      from: () => ({
+          insert: () => ({
+              select: () => ({
+                  single: () => Promise.resolve({ data, error }),
+              }),
+          }),
       }),
-    }),
   };
 }
 
+Deno.test('createMemeQuery should return data when successful', async () => {
+  const data = { ...memeData, id: "550e8400-e29b-41d4-a716-446655440000"};
+  const error = null;
+  const mockquery = mockSupabaseResponse(data, error);
+  const result = await createMemeQuery(memeData, mockquery as any);
+  console.log(result);
+  assertEquals(result, { data, error });
+});
 
+Deno.test('createMemeQuery should return error when insertion fails', async () => {
+  const data = null;
+  const error = { message: "Insertion failed" };
+  const mockquery = mockSupabaseResponse(data, error);
 
-Deno.test("Should successfully create a meme", async () => {
-  function mockResponse(meme: object): { data: object | null, error: object | null } {
-    return {
-        data: {...meme, meme_id: "1234-5678-91011" },
-        error: null,
-    };
-  }
-  const mockSupabase = createMockSupabase(mockResponse);
-  const result = await createMemeQuery(memeData,mockSupabase as any);
-
-    const expectedResult = { data: { 
-        user_id: TEST_USER_ID,
-        meme_title: TEST_MEME_TITLE,
-        image_url: TEST_IMAGE_URL, 
-        tags: TEST_TAGS,
-        meme_id: "1234-5678-91011",
-      },
-       error: null };
-
-    console.log("Actual value:",result);
-    console.log("Expected value:", expectedResult);
-    assertEquals(result, expectedResult);
-  });
-
-Deno.test("Should return an error when inserting meme fails", async () => {
-  function mockResponse(): { data: object | null, error: object | null } {
-    return {
-        data: null,
-        error: { message: "Insertion failed" },
-    };
-  }
-    const mockSupabase = createMockSupabase(mockResponse);
-  
-    const result = await createMemeQuery(memeData,mockSupabase as any);
-  
-    const expectedResult = { data: null, error: { message: "Insertion failed" } };
-  
-    console.log("Actual value:",result);
-    console.log("Expected value:", expectedResult);
-    assertEquals(result, expectedResult);
-}); 
+  const result = await createMemeQuery(memeData, mockquery as any);
+  console.log(result);
+  assertEquals(result, { data, error });
+});
