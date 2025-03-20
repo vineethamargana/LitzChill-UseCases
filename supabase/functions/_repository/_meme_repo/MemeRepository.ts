@@ -46,7 +46,7 @@ export async function uploadFileToBucket(mediaFile: File, memeTitle: string, sup
             .from(BUCKET_NAME.MEMES)
             .upload(filePath, mediaFile, {
                 cacheControl: "3600",
-                upsert: false, // Do not overwrite existing files
+                upsert: false, 
                 contentType: mediaFile.type,
             });
  
@@ -74,12 +74,12 @@ export async function uploadFileToBucket(mediaFile: File, memeTitle: string, sup
 export async function createMemeQuery(meme: Partial<Meme>,supabaseClient = supabase): Promise<{ data: object | null, error: object | null }> {
     const { data, error } = await supabaseClient
         .from(TABLE_NAMES.MEME_TABLE)
-        .insert([{
+        .insert({
             user_id: meme.user_id,
             meme_title: meme.meme_title,
             image_url: meme.media_file,
             tags: meme.tags,
-        }])
+        })
         .select("*")
         .single();
 

@@ -33,41 +33,7 @@ const createMockSupabase = (mockResponse: (conditions: object) => any) => {
       },
     };
   };
-// const createMockSupabase = (mockResponse: (conditions: object) => any) => {
-//     return {
-//       from: (tableName: string) => {
-//         console.log(`[Mock] from('${tableName}') called`);
-//         return {
-//           update: (updateObj: object) => {
-//             console.log(`[Mock] update(${JSON.stringify(updateObj)}) called`);
-//             return {
-//               neq: (column: string, value: any) => {
-//                 console.log(`[Mock] neq(${column} != ${value}) called`);
-//                 return {
-//                   match: (conditions: object) => {
-//                     console.log(`[Mock] match(${JSON.stringify(conditions)}) called`);
-//                     return {
-//                       select: (columns: string) => {
-//                         console.log(`[Mock] select(${columns}) called`);
-//                         return {
-//                           single: async () => {
-//                             console.log(`[Mock] single() called - Executing mock response`);
-//                             const response = mockResponse(conditions);
-//                             console.log(`[Mock] Returning response:`, response);
-//                             return response;
-//                           },
-//                         };
-//                       },
-//                     };
-//                   },
-//                 };
-//               },
-//             };
-//           },
-//         };
-//       },
-//     };
-//   };
+
   
 
 Deno.test("Admin can update any meme", async () => {

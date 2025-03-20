@@ -12,18 +12,21 @@ function mockSupabaseResponse(data: any, error: any ) {
 }
 
 Deno.test("insertLikeQuery should insert a like and return data when successful", async () => {
-  const mockData = { id: "1", meme_id: "123", user_id: "456", likeable_type: "meme" };
-  const mockquery = mockSupabaseResponse(mockData,null); 
+  const data = { id: "1", meme_id: "123", user_id: "456", likeable_type: "meme" };
+  const error = null;
+  const mockquery = mockSupabaseResponse(data,error); 
   const result = await insertLikeQuery("123", "456", "meme",mockquery as any);
   console.log(result);
-  assertEquals(result.data, mockData);
+  assertEquals(result.data, data);
 
 });
 
 Deno.test("insertLikeQuery should throw an error when insertion fails", async () => {
-  const mockError = new Error("Failed to insert like");
-  const mockquery = mockSupabaseResponse(null, mockError); 
+  const data = null;
+  const error ={message:"Failed to insert like"};
+  const mockquery = mockSupabaseResponse(data,error); 
   const result = await insertLikeQuery("123", "456", "meme",mockquery as any);
+  console.log(result);
   
-  await assertEquals(result.error, mockError);
+  assertEquals(result.error, error);
 });

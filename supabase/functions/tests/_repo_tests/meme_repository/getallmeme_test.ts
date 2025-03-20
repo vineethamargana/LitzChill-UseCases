@@ -81,6 +81,7 @@ Deno.test("fetchMemes - returns an error when fetching memes fails", async () =>
     assertEquals(data, null);
     assertEquals((error as Error).message, "Fetching memes failed");
 });
+
 // Deno.test("Handles error when fetching public users fails", async () => {
 //     const mockSupabaseClient = createMockSupabaseClient({
 //         users: { data: null, error: { message: "Database error" } },
@@ -89,7 +90,7 @@ Deno.test("fetchMemes - returns an error when fetching memes fails", async () =>
 //     const { data, error } = await fetchMemes(1, 10, "popular", null, mockSupabaseClient as any);
 //     assertEquals(data, null);
 //     assertEquals((error as Error)?.message, "Database error");
-// });
+// });      
 
 Deno.test("Handles the case when no public users exist", async () => {
     const mockSupabaseClient = createMockSupabaseClient({
@@ -145,6 +146,16 @@ Deno.test("fetchMemes - handles error when fetching public users fails", async (
 Deno.test("fetchMemes - handles case when no public users exist", async () => {
     const mockSupabaseClient = createMockSupabaseClient({
         publicUsers: { data: [], error: null },
+    });
+    const { data, error } = await fetchMemes(1, 10, "popular", null, mockSupabaseClient as any);
+    assertEquals(data, []);
+    assertEquals(error, null);
+});
+
+Deno.test("fetchMemes - handles case when no memes exist", async () => {
+    const mockSupabaseClient = createMockSupabaseClient({
+        publicUsers: { data: [{ user_id: "user123" }], error: null },
+        memes: { data: [], error: null },
     });
     const { data, error } = await fetchMemes(1, 10, "popular", null, mockSupabaseClient as any);
     assertEquals(data, []);

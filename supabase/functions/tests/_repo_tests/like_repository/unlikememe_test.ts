@@ -15,23 +15,27 @@ function createMockSupabaseClient(data: any , error: any) {
 }
 
 Deno.test("unlikememe should return true when unlike is successful", async () => {
-  const mockData = [{ meme_id: "123", user_id: "456" }]; 
-  const mockDbClient = createMockSupabaseClient(mockData,null); 
+  const data = { meme_id: "123", user_id: "456" }; 
+  const error = null;
+  const mockDbClient = createMockSupabaseClient(data, error); 
 
   const result = await unlikememe("123", "456", mockDbClient as any );
   assertEquals(result, true);
 });
 
 Deno.test("unlikememe should return false if no like exists", async () => {
-  const mockDbClient = createMockSupabaseClient(null,null); 
+  const data = null;
+  const error = null;
+  const mockDbClient = createMockSupabaseClient(data, error); 
 
   const result = await unlikememe("123", "456", mockDbClient as any);
   assertEquals(result, false);
 });
 
 Deno.test("unlikememe should return false when an error occurs", async () => {
-  const mockError = new Error("Database delete failed");
-  const mockDbClient = createMockSupabaseClient(null, mockError); 
+  const data = null;
+  const error = {message:"Database delete failed"};
+  const mockDbClient = createMockSupabaseClient(data, error); 
   const result = await unlikememe("123", "456", mockDbClient as any);
   assertEquals(result, false);
 });

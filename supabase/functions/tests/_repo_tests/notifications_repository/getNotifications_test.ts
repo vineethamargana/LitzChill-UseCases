@@ -18,20 +18,23 @@ function mockSupabaseResponse(data: any, error: any) {
 }
 
 Deno.test("getNotificationsQuery should return notifications when successful", async () => {
-    const mockData = [{ id: "1", meme_id: "123", user_id: "456", likeable_type: "meme" }];
-    const mockquery = mockSupabaseResponse(mockData, null);
+    const data = [{ id: "1", meme_id: "123", user_id: "456", likeable_type: "meme" }];
+    const error = null;
+    const mockquery = mockSupabaseResponse(data, error);
     const result = await getNotificationsQuery("123", mockquery as any);
     
     console.log("Result:", result);
-    assertEquals(result.data, mockData);
+    assertEquals(result.data, data);
 });
 
 Deno.test("getNotificationsQuery should return error when failed", async () => {
-    const mockError = { message: "Database connection failed" };
-    const mockquery = mockSupabaseResponse(null, mockError);
+    const data = null;
+    const error = { message: "Database connection failed" };
+    const mockquery = mockSupabaseResponse(data, error);
+
     const result = await getNotificationsQuery("123", mockquery as any);
     
     console.log(result);
 
-    assertEquals(result.error, mockError);
+    assertEquals(result.error, error);
 });
