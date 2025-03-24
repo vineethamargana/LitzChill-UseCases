@@ -1,12 +1,10 @@
 // deno-lint-ignore-file
 import supabase from "@shared/_config/DbConfig.ts";
 import { LIKE_TABLE_FIELDS } from "@shared/_db_table_details/LikeTableFields.ts";
-import { MEMEFIELDS } from "@shared/_db_table_details/MemeTableFields.ts";
 import { TABLE_NAMES } from "@shared/_db_table_details/TableNames.ts";
 import Logger from "@shared/Logger/logger.ts";
 import { HTTP_STATUS_CODE } from "@shared/_constants/HttpStatusCodes.ts";
 import { LIKE_ERROR } from "@shared/_messages/LikeMessage.ts";
-import { CustomException } from "@shared/ExceptionHandling/CustomException.ts";
 import { throwException } from "@shared/ExceptionHandling/ThrowException.ts";
 
  const logger = Logger.getInstance();

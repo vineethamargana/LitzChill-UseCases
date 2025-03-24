@@ -22,7 +22,7 @@ export async function meme_exists(meme_id: string, supabaseClient = supabase) {
         .single();
     logger.info(existingMeme + " " + fetchError);
 
-    return existingMeme ? existingMeme: throwException(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR, MEME_ERROR_MESSAGES.MEME_NOT_FOUND);
+    return existingMeme || throwException(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR, MEME_ERROR_MESSAGES.MEME_NOT_FOUND);
 }
 
 
@@ -48,7 +48,7 @@ export async function uploadFileToBucket(mediaFile: File, memeTitle: string, sup
 
     // Upload new file
     logger.log("Uploading file...");
-    const { data: uploadData, error: uploadError } = await supabaseClient.storage
+    const {error: uploadError } = await supabaseClient.storage
         .from(BUCKET_NAME.MEMES)
         .upload(filePath, mediaFile, {
             cacheControl: "3600",
@@ -76,7 +76,7 @@ export async function uploadFileToBucket(mediaFile: File, memeTitle: string, sup
  * @returns {Promise<{ data: object | null, error: object | null }>} - The inserted meme data if successful; otherwise, an error.
  */
 export async function createMemeQuery(meme: Partial<Meme>, supabaseClient = supabase): Promise<{ data: object | null}> {
-    const { data, error } = await supabaseClient
+    const { data } = await supabaseClient
         .from(TABLE_NAMES.MEME_TABLE)
         .insert([{
             user_id: meme.user_id,
@@ -87,8 +87,8 @@ export async function createMemeQuery(meme: Partial<Meme>, supabaseClient = supa
         .select("*")
         .single();
 
-        return data?data:throwException(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR,MEME_ERROR_MESSAGES.FAILED_TO_CREATE);
-}
+        return data || throwException(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR, MEME_ERROR_MESSAGES.FAILED_TO_CREATE);
+    }
 
 
 /**
@@ -114,7 +114,7 @@ export async function updatememeQuery(
     console.log("Update conditions:", conditions);
 
 
-    const { data, error } = await supabaseClient
+    const { data } = await supabaseClient
         .from(TABLE_NAMES.MEME_TABLE)
         .update(meme)
         .neq(MEMEFIELDS.MEME_STATUS, MEME_STATUS.DELETED)
@@ -123,7 +123,7 @@ export async function updatememeQuery(
         .single();    
 
 
-    return data ? data : throwException(HTTP_STATUS_CODE.NOT_FOUND, MEME_ERROR_MESSAGES.FAILED_TO_UPDATE);
+    return data || throwException(HTTP_STATUS_CODE.NOT_FOUND, MEME_ERROR_MESSAGES.FAILED_TO_UPDATE);
 }
 
 
@@ -144,7 +144,7 @@ export async function deleteMemeQuery(meme_id: string, user_id: string, user_typ
     const isAdmin = user_type === USER_ROLES.ADMIN_ROLE;
     const conditions = isAdmin ? { [MEMEFIELDS.MEME_ID]: meme_id }: { [MEMEFIELDS.MEME_ID]: meme_id, [MEMEFIELDS.USER_ID]: user_id };
 
-    const { data, error } = await supabaseClient
+    const { data } = await supabaseClient
         .from(TABLE_NAMES.MEME_TABLE)
         .update({ meme_status: MEME_STATUS.DELETED })
         .neq(MEMEFIELDS.MEME_STATUS, MEME_STATUS.DELETED)
@@ -152,7 +152,7 @@ export async function deleteMemeQuery(meme_id: string, user_id: string, user_typ
         .select("meme_id, meme_status")
         .single();
 
-    return data ? data: throwException(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR, MEME_ERROR_MESSAGES.FAILED_TO_DELETE);
+    return data || throwException(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR, MEME_ERROR_MESSAGES.FAILED_TO_DELETE);
 }
 
 
@@ -287,5 +287,5 @@ export async function updateMemeStatusQuery(
 
         console.log(error);
 
-        return data ? data : throwException(HTTP_STATUS_CODE.NOT_FOUND, MEME_ERROR_MESSAGES.FAILED_TO_UPDATE);
+        return data || throwException(HTTP_STATUS_CODE.NOT_FOUND, MEME_ERROR_MESSAGES.FAILED_TO_UPDATE);
 }

@@ -7,7 +7,7 @@ import { throwException } from "@shared/ExceptionHandling/ThrowException.ts";
  * Validates if the request's content type is valid "multipart/form-data".
  */
 export function contentTypeValidations(contentType: string) {
-    (!contentType || !contentType.includes("multipart/form-data")) &&
+    (!contentType?.includes("multipart/form-data")) &&
         throwException(HTTP_STATUS_CODE.BAD_REQUEST, MEME_ERROR_MESSAGES.MISSING_REQUIRED_FEILDS);
 }
 
