@@ -1,9 +1,8 @@
 import {  insertLikeQuery } from "@repository/_like_repo/LikeQueries.ts";
 import { ErrorResponse, SuccessResponse } from "@response/Response.ts";
 import { HTTP_STATUS_CODE } from "@shared/_constants/HttpStatusCodes.ts";
-import { LIKE_ERROR } from "@shared/_messages/LikeMessage.ts";
+import { LIKE_ERROR , LIKE_SUCCESS } from "@shared/_messages/LikeMessage.ts";
 import { COMMON_ERROR_MESSAGES } from '@shared/_messages/ErrorMessages.ts';
-import { LIKE_SUCCESS } from '@shared/_messages/LikeMessage.ts';
 import { meme_exists } from "@repository/_meme_repo/MemeRepository.ts";
 import { MEME_ERROR_MESSAGES } from "@shared/_messages/Meme_Module_Messages.ts";
 import { V4 } from "@V4";

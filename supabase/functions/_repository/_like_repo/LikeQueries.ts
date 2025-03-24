@@ -39,7 +39,7 @@ export async function insertLikeQuery(
  * @param user_id - The unique identifier of the user.
  * @returns {Promise<boolean>} - Returns true if successful, or false if there’s an error.
  */
-export async function unlikememe(meme_id: string, user_id: string, supabaseClient = supabase): Promise<boolean|String> {
+export async function unlikememe(meme_id: string, user_id: string, supabaseClient = supabase): Promise<boolean|string> {
   const { data, error } = await supabaseClient
       .from(TABLE_NAMES.LIKES_TABLE)
       .delete()

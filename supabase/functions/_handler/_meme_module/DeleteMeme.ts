@@ -18,7 +18,7 @@ export default async function DeletememebyID(_req: Request,params: Record<string
         // Call the function (mocked in tests, real in production)
         const { error } = await deleteMemeQueryFn(meme_id, user_id, user_type);
 
-        if (error) return ErrorResponse(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR,error.message);
+        if (error) return ErrorResponse(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR,MEME_ERROR_MESSAGES.FAILED_TO_DELETE);
         return SuccessResponse(HTTP_STATUS_CODE.OK,MEME_SUCCESS_MESSAGES.MEME_DELETED_SUCCESSFULLY);
 
     } catch (error) {

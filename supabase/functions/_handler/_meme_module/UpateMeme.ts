@@ -37,8 +37,9 @@ export default async function updateMeme(req: Request,params:Record<string,strin
         const user_id = params.user_id;
         
         // Validate the meme_id parameter
-        if (!meme_id || !V4.isValid(meme_id)) return  ErrorResponse(HTTP_STATUS_CODE.BAD_REQUEST,MEME_ERROR_MESSAGES.MISSING_MEMEID);
-    
+        if (!meme_id || !V4.isValid(meme_id)) {
+            return ErrorResponse(HTTP_STATUS_CODE.BAD_REQUEST, MEME_ERROR_MESSAGES.MISSING_MEMEID);
+        }    
         //Extract the JSON body and validate the required fields before inserting the meme into the database.
           const body = await req.json();
           const meme_title = body[MEMEFIELDS.MEME_TITLE] || undefined;

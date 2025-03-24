@@ -1,4 +1,3 @@
-// import { Meme } from "@model/MemeModel.ts";
 import { ErrorResponse } from "@response/Response.ts";
 import { HTTP_STATUS_CODE } from '../_constants/HttpStatusCodes.ts';
 import { MEME_ERROR_MESSAGES } from "../_messages/Meme_Module_Messages.ts";
@@ -15,7 +14,7 @@ import { MEME_ERROR_MESSAGES } from "../_messages/Meme_Module_Messages.ts";
  * contentTypeValidations("application/json"); // Returns false
  */
 export function contentTypeValidations(contentType: string): boolean {
-    if (!contentType || !contentType.includes("multipart/form-data")) {
+    if (!contentType?.includes("multipart/form-data")) {
         console.warn("Invalid content type: " + contentType); // Be specific about the invalid type.
         return false;
     }

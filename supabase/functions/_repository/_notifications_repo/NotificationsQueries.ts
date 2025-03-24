@@ -1,6 +1,5 @@
 // deno-lint-ignore-file
 import supabase from "@shared/_config/DbConfig.ts";
-import { MEME_STATUS } from "@shared/_constants/Types.ts";
 import { NOTIFICATIONS_TABLE_FEILDS } from "@shared/_db_table_details/NotificationTableConstants.ts";
 import { TABLE_NAMES } from "@shared/_db_table_details/TableNames.ts";
 import Logger from "@shared/Logger/logger.ts";
@@ -32,7 +31,7 @@ export async function getNotificationsQuery(user_id: string, SupabaseClient=supa
  * @param notification_id - The unique identifier of the notification.
  * @returns {Promise<boolean>} - Returns true if the notification was successfully marked as read, or false if there was an error.
  */
-export async function markNotificationsAsReadQuery(notification_id: string, user_id: string, SupabaseClient=supabase): Promise<boolean|String> {
+export async function markNotificationsAsReadQuery(notification_id: string, user_id: string, SupabaseClient=supabase): Promise<boolean|string> {
     const { data, error } = await SupabaseClient
         .from(TABLE_NAMES.NOTIFICATIONS_TABLE)
         .update({ read_status: true })
