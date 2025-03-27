@@ -5,6 +5,8 @@ export const MEME_ROUTES ={
     GETTING_ALL_MEMES_PATH : "/MemeModule/getallmemes",
     MEME_DELETE_PATH : "/MemeModule/deletememe/:id",
     MEME_UPDATE_STATUS_PATH : "/MemeModule/updatememestatus/:id",
+    UPLOAD_PRIVATE_MEME : "/MemeModule/updatePrivatememe"
+
 }
 
 export const LIKES_ROUTES = {

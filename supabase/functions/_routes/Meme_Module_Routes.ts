@@ -4,10 +4,11 @@ import { MEME_ROUTES } from "./RoutesPaths.ts";
 import { USER_ROLES } from '@shared/_constants/UserRoles.ts';
 import { checkUserAuthentication } from "@middleware/middlerWare.ts";
 import updateMeme from "@handler/_meme_module/UpateMeme.ts";
-import getmemebyID from "../_handler/_meme_module/getMemeByID.ts";
 import DeletememebyID from "@handler/_meme_module/DeleteMeme.ts";
 import getAllMemes from "@handler/_meme_module/GetAllMemes.ts";
 import updateMemeStatus from "@handler/_meme_module/UpdateMemeStatus.ts";
+import uploadPrivateMeme from "@handler/_meme_module/uploadmemetoprivatebucket.ts";
+import getmemebyID from "../_handler/_meme_module/memegetbyid.ts";
 
 
 
@@ -19,6 +20,11 @@ export const MemeRoutes = {
             USER_ROLES.USER_ROLE,
             USER_ROLES.MEMER_ROLE]
         ),
+        [MEME_ROUTES.UPLOAD_PRIVATE_MEME]: checkUserAuthentication(uploadPrivateMeme,[
+            USER_ROLES.ADMIN_ROLE, 
+            USER_ROLES.MEMER_ROLE]
+        )
+
     },
     [HTTP_METHOD.PATCH]: {
         [MEME_ROUTES.MEME_UPDATE_PATH]: checkUserAuthentication(updateMeme, [
