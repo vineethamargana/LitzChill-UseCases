@@ -11,7 +11,6 @@ Deno.serve(async (_req) => {
     })
     // url: Deno.env.get('UPSTASH_REDIS_REST_URL')!,
     // token: Deno.env.get('UPSTASH_REDIS_REST_TOKEN')!,
-
     console.log("Success")
 
     const deno_region = Deno.env.get('DENO_REGION')

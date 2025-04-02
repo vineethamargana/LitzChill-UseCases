@@ -9,6 +9,7 @@ import Logger from "@shared/Logger/logger.ts";
 import { HTTP_STATUS_CODE } from "@shared/_constants/HttpStatusCodes.ts";
 import { throwException } from "@shared/ExceptionHandling/ThrowException.ts";
 import { MEME_ERROR_MESSAGES } from "@shared/_messages/Meme_Module_Messages.ts";
+import { Redis } from "https://deno.land/x/upstash_redis@v1.19.3/mod.ts";
 
 const logger = Logger.getInstance();
 
@@ -215,8 +216,46 @@ export async function fetchMemes(page: number, limit: number, sort: string, tags
  * @param {string} meme_id - The unique identifier of the meme.
  * @returns {{ data: object | null, error: object | null }} - The meme data for given ID or an error object.
  */
+
+
 export async function getMemeByIdQuery(meme_id: string, user_id: string, supabaseClient = supabase) {
-    // Step 1: Fetch meme details (ensure it returns at most 1 row)
+    console.log("Connecting to Redis...");
+    
+    let redis;
+    try {
+        redis = new Redis({
+            url: "https://handy-ray-41638.upstash.io",
+            token: "AaKmAAIjcDE4OGEzNmE0MTViN2Y0NDM4YWIzMjFmN2IzOGQwYmVlZHAxMA",
+        });
+        console.log("Redis connected successfully.");
+    } catch (error) {
+        console.error("Redis connection failed:", error);
+        throw error;
+    }
+
+    const redisKey = `meme:${meme_id}`;
+    console.log("Checking Redis cache for key:", redisKey);
+
+    try {
+        const cachedMeme = await redis.get(redisKey);
+        console.log("Redis GET Response:", cachedMeme);
+
+        if (typeof cachedMeme === "string") {
+            console.log("Meme fetched from Redis Cache!");
+            return JSON.parse(cachedMeme);
+        } else {
+            console.log("Meme not found in Redis. Fetching from Supabase...");
+        }
+    } catch (error) {
+        console.error("Error fetching from Redis:", error);
+    }
+
+  // 2️Check if meme is in Redis cache
+     const cachedMeme = await redis.get(redisKey);
+     if (typeof cachedMeme === "string") {
+        console.log("Meme fetched from Redis Cache!");
+        return JSON.parse(cachedMeme)
+      }
     console.log("Attempting to fetch meme by ID: " + meme_id);
     const { data: memeData, error: memeError } = await supabaseClient
         .from(TABLE_NAMES.MEME_TABLE)
@@ -257,6 +296,9 @@ export async function getMemeByIdQuery(meme_id: string, user_id: string, supabas
 
         followerError || !followerData?.length && throwException(HTTP_STATUS_CODE.FORBIDDEN, "Access denied: User " + user_id + " is not following private user " + memeOwnerId);
     }
+    await redis.set(redisKey, JSON.stringify(memeData), { ex: 300 });
+
+    console.log("Meme stored in Redis for caching.");
 
     // Step 4: Return meme details if access is allowed
     return memeData;
