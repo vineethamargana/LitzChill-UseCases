@@ -5,12 +5,11 @@ console.log(`Function "upstash-redis-counter" up and running!`)
 Deno.serve(async (_req) => {
   try {
     const redis = new Redis({
-      url:"https://handy-ray-41638.upstash.io",
-      token: "AaKmAAIjcDE4OGEzNmE0MTViN2Y0NDM4YWIzMjFmN2IzOGQwYmVlZHAxMA"
+      url:"https://talented-prawn-57335.upstash.io",
+      token: "Ad_3AAIjcDE0NDhkYmFkZGIzNGY0ODM5OGE0YmM2ZTg4Njg3MDI4YnAxMA"
      
     })
-    // url: Deno.env.get('UPSTASH_REDIS_REST_URL')!,
-    // token: Deno.env.get('UPSTASH_REDIS_REST_TOKEN')!,
+  
     console.log("Success")
 
     const deno_region = Deno.env.get('DENO_REGION')

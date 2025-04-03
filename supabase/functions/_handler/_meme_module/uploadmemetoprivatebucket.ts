@@ -38,3 +38,4 @@ export default async function uploadPrivateMeme(req: Request) {
     return new Response(JSON.stringify({ error: err }), { status: 500 });
   }
 }
+ 

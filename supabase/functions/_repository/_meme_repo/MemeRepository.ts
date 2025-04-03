@@ -49,7 +49,7 @@ export async function uploadFileToBucket(mediaFile: File, memeTitle: string, sup
 
     // Upload new file
     logger.log("Uploading file...");
-    const {error: uploadError } = await supabaseClient.storage
+    const { error: uploadError } = await supabaseClient.storage
         .from(BUCKET_NAME.MEMES)
         .upload(filePath, mediaFile, {
             cacheControl: "3600",
@@ -76,7 +76,7 @@ export async function uploadFileToBucket(mediaFile: File, memeTitle: string, sup
  * @param {string} user_id - The unique identifier of the user creating the meme.
  * @returns {Promise<{ data: object | null, error: object | null }>} - The inserted meme data if successful; otherwise, an error.
  */
-export async function createMemeQuery(meme: Partial<Meme>, supabaseClient = supabase): Promise<{ data: object | null}> {
+export async function createMemeQuery(meme: Partial<Meme>, supabaseClient = supabase): Promise<{ data: object | null }> {
     const { data } = await supabaseClient
         .from(TABLE_NAMES.MEME_TABLE)
         .insert([{
@@ -88,8 +88,8 @@ export async function createMemeQuery(meme: Partial<Meme>, supabaseClient = supa
         .select("*")
         .single();
 
-        return data || throwException(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR, MEME_ERROR_MESSAGES.FAILED_TO_CREATE);
-    }
+    return data || throwException(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR, MEME_ERROR_MESSAGES.FAILED_TO_CREATE);
+}
 
 
 /**
@@ -121,7 +121,7 @@ export async function updatememeQuery(
         .neq(MEMEFIELDS.MEME_STATUS, MEME_STATUS.DELETED)
         .match(conditions)
         .select("meme_id, meme_title, tags, updated_at")
-        .single();    
+        .single();
 
 
     return data || throwException(HTTP_STATUS_CODE.NOT_FOUND, MEME_ERROR_MESSAGES.FAILED_TO_UPDATE);
@@ -143,7 +143,7 @@ export async function updatememeQuery(
  */
 export async function deleteMemeQuery(meme_id: string, user_id: string, user_type: string, supabaseClient = supabase) {
     const isAdmin = user_type === USER_ROLES.ADMIN_ROLE;
-    const conditions = isAdmin ? { [MEMEFIELDS.MEME_ID]: meme_id }: { [MEMEFIELDS.MEME_ID]: meme_id, [MEMEFIELDS.USER_ID]: user_id };
+    const conditions = isAdmin ? { [MEMEFIELDS.MEME_ID]: meme_id } : { [MEMEFIELDS.MEME_ID]: meme_id, [MEMEFIELDS.USER_ID]: user_id };
 
     const { data } = await supabaseClient
         .from(TABLE_NAMES.MEME_TABLE)
@@ -167,7 +167,7 @@ export async function deleteMemeQuery(meme_id: string, user_id: string, user_typ
   * @param {string | null} tags - A comma-separated string of tags to filter memes by, or null for no tag filter.
   * @returns {Promise<{ data: object[] | null, error: object | null }>} - A promise that resolves with an array of memes or an error.
   */
-export async function fetchMemes(page: number, limit: number, sort: string, tags: string | null, supabaseClient = supabase):Promise< object[] > {
+export async function fetchMemes(page: number, limit: number, sort: string, tags: string | null, supabaseClient = supabase): Promise<object[]> {
     // Subquery to fetch public users
     const { data: publicUsers, error: publicUsersError } = await supabaseClient
         .from("users")
@@ -175,12 +175,12 @@ export async function fetchMemes(page: number, limit: number, sort: string, tags
         .eq("preferences", "Public");
 
 
-    if (publicUsersError || !publicUsers) throwException(HTTP_STATUS_CODE.NOT_FOUND,MEME_ERROR_MESSAGES.NO_MEMES);
-    
+    if (publicUsersError || !publicUsers) throwException(HTTP_STATUS_CODE.NOT_FOUND, MEME_ERROR_MESSAGES.NO_MEMES);
+
 
     // Use map() to create an array of public user IDs
     const publicUserIds = publicUsers.map(function (user: { user_id: any; }) {
-        return user.user_id; 
+        return user.user_id;
     });
 
     // Base query to fetch memes
@@ -203,12 +203,13 @@ export async function fetchMemes(page: number, limit: number, sort: string, tags
     query = query.range((page - 1) * limit, page * limit - 1);
 
 
-    const { data ,error} = await query;
+    const { data, error } = await query;
 
     if (error || !data || data.length === 0) throwException(HTTP_STATUS_CODE.NOT_FOUND, MEME_ERROR_MESSAGES.NO_MEMES);
-    
+
     return data;
 }
+
 
 /**
  * Fetches a meme by its ID.
@@ -217,60 +218,92 @@ export async function fetchMemes(page: number, limit: number, sort: string, tags
  * @returns {{ data: object | null, error: object | null }} - The meme data for given ID or an error object.
  */
 
+const redis = new Redis({
+    url: "https://talented-prawn-57335.upstash.io",
+    token: "Ad_3AAIjcDE0NDhkYmFkZGIzNGY0ODM5OGE0YmM2ZTg4Njg3MDI4YnAxMA"
+});
+// export async function getMemeByIdQuery(meme_id: string, user_id: string, supabaseClient = supabase) {
+//     const cacheKey = `meme:${meme_id}`;
+//     const cachedMeme = await redis.get(cacheKey);
+//     if (cachedMeme && typeof cachedMeme === 'string') {
+//         console.log("Cache hit for meme:", meme_id);
+//         return JSON.parse(cachedMeme);
+//     }
+//     console.log("Cache miss, fetching from Supabase:", meme_id);
+//     // Step 1: Fetch meme details (ensure it returns at most 1 row)
+//     console.log("Attempting to fetch meme by ID: " + meme_id);
+//     const { data: memeData, error: memeError } = await supabaseClient
+//         .from(TABLE_NAMES.MEME_TABLE)
+//         .select("meme_title, image_url, tags, like_count, created_at, user_id")
+//         .neq(MEMEFIELDS.MEME_STATUS, MEME_STATUS.DELETED)
+//         .eq(MEMEFIELDS.MEME_ID, meme_id)
+//         .single();
+//     console.log("Fetched meme data: " + JSON.stringify(memeData));
+
+//     memeError || !memeData && throwException(HTTP_STATUS_CODE.NOT_FOUND, MEME_ERROR_MESSAGES.MEME_NOT_FOUND);
+
+
+//     const memeOwnerId = memeData?.user_id;
+
+//     // Step 2: Check if the user's account is private
+//     const { data: userData, error: userError } = await supabaseClient
+//         .from(TABLE_NAMES.USER_TABLE)
+//         .select("preferences")
+//         .eq("user_id", memeOwnerId)
+//         .limit(1)
+//         .single();
+
+//     console.log("Fetched user data: " + JSON.stringify(userData));
+
+//     !userData|| userError  && throwException(HTTP_STATUS_CODE.NOT_FOUND, "Meme owner not found");
+
+
+//     const isPrivate = userData?.preferences === "Private";
+
+//     // Step 3: If account is private, check if the requester is a follower
+//     if (isPrivate) {
+//         const { data: followerData, error: followerError } = await supabaseClient
+//             .from(TABLE_NAMES.FOLLOWERS_TABLE)
+//             .select("follower_id")
+//             .eq("follower_id", user_id)
+//             .eq("user_id", memeOwnerId)
+//             .limit(1);
+
+//         followerError || !followerData?.length && throwException(HTTP_STATUS_CODE.FORBIDDEN, "Access denied: User " + user_id + " is not following private user " + memeOwnerId);
+//     }
+//     await redis.set(cacheKey, JSON.stringify(memeData), { ex: 600 });
+
+//     // Step 4: Return meme details if access is allowed
+//     return memeData;
+// }
+
+
 
 export async function getMemeByIdQuery(meme_id: string, user_id: string, supabaseClient = supabase) {
-    console.log("Connecting to Redis...");
-    
-    let redis;
-    try {
-        redis = new Redis({
-            url: "https://handy-ray-41638.upstash.io",
-            token: "AaKmAAIjcDE4OGEzNmE0MTViN2Y0NDM4YWIzMjFmN2IzOGQwYmVlZHAxMA",
-        });
-        console.log("Redis connected successfully.");
-    } catch (error) {
-        console.error("Redis connection failed:", error);
-        throw error;
-    }
+    // Step 1: Check if meme is cached in Redis
+    const cachedMeme = await redis.hget("memes", meme_id);
 
-    const redisKey = `meme:${meme_id}`;
-    console.log("Checking Redis cache for key:", redisKey);
+    if (cachedMeme && typeof cachedMeme === 'string') {
+        return JSON.parse(cachedMeme);
+    } 
 
-    try {
-        const cachedMeme = await redis.get(redisKey);
-        console.log("Redis GET Response:", cachedMeme);
+    console.log("Cache miss. Fetching from Supabase...");
 
-        if (typeof cachedMeme === "string") {
-            console.log("Meme fetched from Redis Cache!");
-            return JSON.parse(cachedMeme);
-        } else {
-            console.log("Meme not found in Redis. Fetching from Supabase...");
-        }
-    } catch (error) {
-        console.error("Error fetching from Redis:", error);
-    }
-
-  // 2️Check if meme is in Redis cache
-     const cachedMeme = await redis.get(redisKey);
-     if (typeof cachedMeme === "string") {
-        console.log("Meme fetched from Redis Cache!");
-        return JSON.parse(cachedMeme)
-      }
-    console.log("Attempting to fetch meme by ID: " + meme_id);
+    // Step 2: Fetch meme details from Supabase
     const { data: memeData, error: memeError } = await supabaseClient
         .from(TABLE_NAMES.MEME_TABLE)
         .select("meme_title, image_url, tags, like_count, created_at, user_id")
         .neq(MEMEFIELDS.MEME_STATUS, MEME_STATUS.DELETED)
         .eq(MEMEFIELDS.MEME_ID, meme_id)
         .single();
+    
     console.log("Fetched meme data: " + JSON.stringify(memeData));
 
     memeError || !memeData && throwException(HTTP_STATUS_CODE.NOT_FOUND, MEME_ERROR_MESSAGES.MEME_NOT_FOUND);
 
-
     const memeOwnerId = memeData?.user_id;
 
-    // Step 2: Check if the user's account is private
+    // Step 3: Check if the user's account is private
     const { data: userData, error: userError } = await supabaseClient
         .from(TABLE_NAMES.USER_TABLE)
         .select("preferences")
@@ -280,12 +313,11 @@ export async function getMemeByIdQuery(meme_id: string, user_id: string, supabas
 
     console.log("Fetched user data: " + JSON.stringify(userData));
 
-    !userData|| userError  && throwException(HTTP_STATUS_CODE.NOT_FOUND, "Meme owner not found");
-  
+    !userData || userError && throwException(HTTP_STATUS_CODE.NOT_FOUND, "Meme owner not found");
 
     const isPrivate = userData?.preferences === "Private";
 
-    // Step 3: If account is private, check if the requester is a follower
+    // Step 4: If account is private, check if the requester is a follower
     if (isPrivate) {
         const { data: followerData, error: followerError } = await supabaseClient
             .from(TABLE_NAMES.FOLLOWERS_TABLE)
@@ -296,13 +328,18 @@ export async function getMemeByIdQuery(meme_id: string, user_id: string, supabas
 
         followerError || !followerData?.length && throwException(HTTP_STATUS_CODE.FORBIDDEN, "Access denied: User " + user_id + " is not following private user " + memeOwnerId);
     }
-    await redis.set(redisKey, JSON.stringify(memeData), { ex: 300 });
 
-    console.log("Meme stored in Redis for caching.");
+    // Step 5: Cache the meme in Redis for future requests
+    await redis.hset("memes", { [meme_id]: JSON.stringify(memeData) });
 
-    // Step 4: Return meme details if access is allowed
+    console.log(`Meme ${meme_id} cached in Redis.`);
+
+    // Step 6: Return meme details
     return memeData;
 }
+
+
+
 
 
 /**
@@ -317,7 +354,7 @@ export async function updateMemeStatusQuery(
     meme_status: string,
     user_id: string,
     supabaseClient = supabase
-): Promise< object> {
+): Promise<object> {
     const { data, error } = await supabaseClient
         .from(TABLE_NAMES.MEME_TABLE)
         .update({ meme_status: meme_status })
@@ -327,7 +364,7 @@ export async function updateMemeStatusQuery(
         .select("meme_id, meme_status, meme_title")
         .single();
 
-        console.log(error);
+    console.log(error);
 
-        return data || throwException(HTTP_STATUS_CODE.NOT_FOUND, MEME_ERROR_MESSAGES.FAILED_TO_UPDATE);
+    return data || throwException(HTTP_STATUS_CODE.NOT_FOUND, MEME_ERROR_MESSAGES.FAILED_TO_UPDATE);
 }
