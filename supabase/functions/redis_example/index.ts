@@ -10,7 +10,7 @@ const redis = await connect({
 const pong = await redis.ping();
 console.log("Redis Connected:", pong);
 
-// Example: Set and Get a Key
+// Set and Get a Key
 await redis.set("message", "Hello from Deno!");
 const value = await redis.get("message");
 console.log("Stored value:", value);
