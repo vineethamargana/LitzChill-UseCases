@@ -9,7 +9,8 @@ import Logger from "@shared/Logger/logger.ts";
 import { HTTP_STATUS_CODE } from "@shared/_constants/HttpStatusCodes.ts";
 import { throwException } from "@shared/ExceptionHandling/ThrowException.ts";
 import { MEME_ERROR_MESSAGES } from "@shared/_messages/Meme_Module_Messages.ts";
-import { Redis } from "https://deno.land/x/upstash_redis@v1.19.3/mod.ts";
+// import { Redis } from "https://deno.land/x/upstash_redis@v1.19.3/mod.ts";
+import { connect } from "https://deno.land/x/redis@v0.29.4/mod.ts";
 
 const logger = Logger.getInstance();
 
@@ -218,10 +219,10 @@ export async function fetchMemes(page: number, limit: number, sort: string, tags
  * @returns {{ data: object | null, error: object | null }} - The meme data for given ID or an error object.
  */
 
-const redis = new Redis({
-    url: "https://talented-prawn-57335.upstash.io",
-    token: "Ad_3AAIjcDE0NDhkYmFkZGIzNGY0ODM5OGE0YmM2ZTg4Njg3MDI4YnAxMA"
-});
+// const redis = new Redis({
+//     url: "https://talented-prawn-57335.upstash.io",
+//     token: "Ad_3AAIjcDE0NDhkYmFkZGIzNGY0ODM5OGE0YmM2ZTg4Njg3MDI4YnAxMA"
+// });
 // export async function getMemeByIdQuery(meme_id: string, user_id: string, supabaseClient = supabase) {
 //     const cacheKey = `meme:${meme_id}`;
 //     const cachedMeme = await redis.get(cacheKey);
@@ -278,6 +279,11 @@ const redis = new Redis({
 // }
 
 
+const redis = await connect({
+    hostname: "redis-19724.c262.us-east-1-3.ec2.redns.redis-cloud.com",  // Example: "redis-12345.c250.us-east-1-3.ec2.cloud.redislabs.com"
+    port: 19724,                 // Replace with your actual port
+    password: "cu4Eg3dkCSgCTeTosurCWbGAkpVMXBpU", // If authentication is required
+});
 
 export async function getMemeByIdQuery(meme_id: string, user_id: string, supabaseClient = supabase) {
     // Step 1: Check if meme is cached in Redis
